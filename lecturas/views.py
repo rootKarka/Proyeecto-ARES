@@ -9,6 +9,7 @@ class LecturaViewSet(viewsets.ModelViewSet):
     serializer_class = LecturaSerializer
 
 def analizar_sensor(request):
+
     url = "http://localhost:8080/api/analizar"
 
     data = {
@@ -16,6 +17,14 @@ def analizar_sensor(request):
         "valor": 400
     }
 
-    response = requests.post(url, json=data)
+    try:
+        response = requests.post(url, json=data)
+        resultado = response.json()
 
-    return JsonResponse(response.json())
+        return JsonResponse(resultado)
+
+    except Exception as e:
+        return JsonResponse({
+            "nivel": "bajo",
+            "mensaje": "Error al conectar con Spring Boot"
+        })
