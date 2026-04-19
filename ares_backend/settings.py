@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'robots',
     'sensores',
     'lecturas',
+    'alertas',
 ]
 
 MIDDLEWARE = [
