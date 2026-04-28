@@ -1,11 +1,10 @@
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
 from .models import LecturaSensor
 from .serializers import LecturaSerializer, LecturaListSerializer
 import requests
-from django.http import JsonResponse
-from rest_framework.response import Response
 from alertas.models import Alerta
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
 
 
 class LecturaViewSet(viewsets.ModelViewSet):
@@ -22,7 +21,7 @@ class LecturaViewSet(viewsets.ModelViewSet):
         url = "http://localhost:8080/api/analizar"
 
         data = {
-            "tipo": "gas",
+            "tipo": "gas",  # puedes luego usar lectura.sensor.tipo
             "valor": lectura.valor
         }
 
@@ -32,21 +31,18 @@ class LecturaViewSet(viewsets.ModelViewSet):
             if response.status_code == 200:
                 result = response.json()
 
-                print("Respuesta Spring:", result)
-
                 Alerta.objects.create(
                     nivel=result.get("nivel", "desconocido"),
                     mensaje=result.get("mensaje", "Sin mensaje"),
                     lectura=lectura
                 )
-            else:
-                print("Error HTTP:", response.status_code)
 
-        except Exception as e:
-            print("Error conectando con Spring:", e)
+        except Exception:
+            # Opcional: podrías loguear el error
+            pass
 
 
-# 🔥 endpoint para probar Spring Boot
+# 🔹 SOLO PARA PRUEBA (OPCIONAL)
 @api_view(['GET'])
 def analizar_sensor(request):
 
@@ -59,12 +55,10 @@ def analizar_sensor(request):
 
     try:
         response = requests.post(url, json=data)
-        resultado = response.json()
+        return JsonResponse(response.json())
 
-        return JsonResponse(resultado)
-
-    except Exception as e:
+    except:
         return JsonResponse({
             "nivel": "bajo",
-            "mensaje": "Error al conectar con Spring Boot"
+            "mensaje": "Error conectando con Spring"
         })

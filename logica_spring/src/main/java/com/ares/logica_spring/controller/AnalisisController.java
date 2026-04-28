@@ -30,7 +30,7 @@ public class AnalisisController {
         double valor;
 
         try {
-            valor = Double.parseDouble(data.get("valor").toString());
+    valor = ((Number) data.get("valor")).doubleValue();
         } catch (Exception e) {
             response.put("nivel", BAJO);
             response.put("mensaje", "Valor inválido");
