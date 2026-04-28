@@ -16,14 +16,13 @@ class LecturaViewSet(viewsets.ModelViewSet):
             return LecturaListSerializer
         return LecturaSerializer
 
-   
     def perform_create(self, serializer):
         lectura = serializer.save()
 
         url = "http://localhost:8080/api/analizar"
 
         data = {
-            "tipo": "gas",  # para pruebas
+            "tipo": "gas",
             "valor": lectura.valor
         }
 
@@ -47,9 +46,10 @@ class LecturaViewSet(viewsets.ModelViewSet):
             print("Error conectando con Spring:", e)
 
 
-#   spring boot endpoint
-
+# 🔥 endpoint para probar Spring Boot
+@api_view(['GET'])
 def analizar_sensor(request):
+
     url = "http://localhost:8080/api/analizar"
 
     data = {
@@ -57,8 +57,14 @@ def analizar_sensor(request):
         "valor": 400
     }
 
-    response = requests.post(url, json=data)
+    try:
+        response = requests.post(url, json=data)
+        resultado = response.json()
 
-    return JsonResponse(response.json())
+        return JsonResponse(resultado)
 
-
+    except Exception as e:
+        return JsonResponse({
+            "nivel": "bajo",
+            "mensaje": "Error al conectar con Spring Boot"
+        })
