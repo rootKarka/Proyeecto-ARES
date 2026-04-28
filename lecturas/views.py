@@ -15,26 +15,36 @@ class LecturaViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return LecturaListSerializer
         return LecturaSerializer
-    
-    # logica para crear alertas al guardar una lectura, solo para hacer pruebas 
+
+   
     def perform_create(self, serializer):
         lectura = serializer.save()
 
-        if lectura.valor > 300:
-            Alerta.objects.create(
-                nivel="alto",
-                mensaje="Valor crítico detectado",
-                lectura=lectura
-            )
-        elif lectura.valor > 100:
-            Alerta.objects.create(
-                nivel="medio",
-                mensaje="Valor elevado",
-                lectura=lectura
-            )
+        url = "http://localhost:8080/api/analizar"
 
+        data = {
+            "tipo": "gas",  # para pruebas
+            "valor": lectura.valor
+        }
 
+        try:
+            response = requests.post(url, json=data)
 
+            if response.status_code == 200:
+                result = response.json()
+
+                print("Respuesta Spring:", result)
+
+                Alerta.objects.create(
+                    nivel=result.get("nivel", "desconocido"),
+                    mensaje=result.get("mensaje", "Sin mensaje"),
+                    lectura=lectura
+                )
+            else:
+                print("Error HTTP:", response.status_code)
+
+        except Exception as e:
+            print("Error conectando con Spring:", e)
 
 
 #   spring boot endpoint
