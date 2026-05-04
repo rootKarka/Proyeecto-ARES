@@ -5,7 +5,7 @@ const Robots = () => {
   const [robots, setRobots] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/robots/')
+    fetch('http://192.168.1.36:8000/api/robots/')
       .then(response => response.json())
       .then(data => {
         setRobots(data);

@@ -19,8 +19,8 @@ const Sensors = () => {
   useEffect(() => {
     // Usamos Promise.all para hacer ambas peticiones al mismo tiempo
     Promise.all([
-      fetch('http://localhost:8000/api/sensores/').then(res => res.json()),
-      fetch('http://localhost:8000/api/robots/').then(res => res.json())
+      fetch('http://192.168.1.36:8000/api/sensores/').then(res => res.json()),
+      fetch('http://192.168.1.36:8000/api/robots/').then(res => res.json())
     ])
       .then(([sensoresData, robotsData]) => {
         // Creamos un diccionario de robots para buscar sus nombres fácilmente por ID
