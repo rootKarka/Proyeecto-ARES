@@ -1,5 +1,19 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
-body {
-  background-color: #020617; 
+/* Sidebar expanded styles */
+body.sidebar-expanded .lg\:sidebar-expanded\:opacity-100 {
+  opacity: 1 !important;
+}
+
+body.sidebar-expanded .lg\:sidebar-expanded\:\!w-64 {
+  width: 16rem !important;
+}
+
+body.sidebar-expanded .lg\:sidebar-expanded\:block {
+  display: block !important;
+}
+
+body.sidebar-expanded .lg\:sidebar-expanded\:hidden {
+  display: none !important;
 }
