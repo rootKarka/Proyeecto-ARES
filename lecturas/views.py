@@ -1,11 +1,12 @@
-from rest_framework import viewsets
-from .models import LecturaSensor
-from .serializers import LecturaSerializer, LecturaListSerializer
+import threading  # Permite que Django haga dos cosas a la vez
 import requests
-from alertas.models import Alerta
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
 
+from .models import LecturaSensor
+from .serializers import LecturaSerializer, LecturaListSerializer
+from alertas.models import Alerta
 
 class LecturaViewSet(viewsets.ModelViewSet):
     queryset = LecturaSensor.objects.all()
@@ -16,47 +17,62 @@ class LecturaViewSet(viewsets.ModelViewSet):
         return LecturaSerializer
 
     def perform_create(self, serializer):
+        # 1. GUARDADO INMEDIATO:
+        # Django guarda en SQLite y genera el ID de la lectura.
         lectura = serializer.save()
 
-        url = "http://localhost:8080/api/analizar"
+        # 2. FUNCIÓN DE ANÁLISIS (Tarea en segundo plano):
+        # Esta función contiene la lógica que tarda (comunicación con Spring).
+        def tarea_analisis_asincrona(obj_lectura):
+            url_spring = "http://localhost:8080/api/analizar"
+            
+            # Usamos el tipo real del sensor ("gas", "temperatura", etc.) 
+            # que vimos en las capturas de tu base de datos.
+            data = {
+                "tipo": obj_lectura.sensor.tipo,
+                "valor": obj_lectura.valor
+            }
 
-        data = {
-            "tipo": "gas",  # puedes luego usar lectura.sensor.tipo
-            "valor": lectura.valor
-        }
+            try:
+                # Enviamos a Spring Boot con un tiempo de espera máximo de 2 segundos
+                response = requests.post(url_spring, json=data, timeout=2)
 
-        try:
-            response = requests.post(url, json=data)
+                if response.status_code == 200:
+                    result = response.json()
+                    
+                    # Si Spring detecta algo que NO sea nivel "bajo", creamos la alerta
+                    if result.get("nivel") != "bajo":
+                        Alerta.objects.create(
+                            nivel=result.get("nivel", "desconocido"),
+                            mensaje=result.get("mensaje", "Sin mensaje"),
+                            lectura=obj_lectura
+                        )
+            except Exception as e:
+                # Si Spring está apagado o hay error, lo imprime en la consola de Django
+                # pero NO detiene al robot.
+                print(f"Error en comunicación con Spring: {e}")
 
-            if response.status_code == 200:
-                result = response.json()
+        # 3. LANZAMIENTO DEL HILO (Threading):
+        # Aquí es donde ocurre la magia. Se dispara la función de arriba 
+        # y Django sigue adelante inmediatamente sin esperar respuesta.
+        hilo = threading.Thread(target=tarea_analisis_asincrona, args=(lectura,))
+        hilo.start()
 
-                Alerta.objects.create(
-                    nivel=result.get("nivel", "desconocido"),
-                    mensaje=result.get("mensaje", "Sin mensaje"),
-                    lectura=lectura
-                )
-
-        except Exception:
-            # Opcional: podrías loguear el error
-            pass
+        # Al terminar esta función, Django le envía el "201 Created" al ESP32.
+        # El robot recibe el OK mientras el hilo apenas está hablando con Spring.
 
 
-# 🔹 SOLO PARA PRUEBA (OPCIONAL)
+# 🔹 VISTA DE PRUEBA (MANTENIDA PARA TESTEAR SPRING)
 @api_view(['GET'])
 def analizar_sensor(request):
-
     url = "http://localhost:8080/api/analizar"
-
     data = {
         "tipo": "gas",
         "valor": 400
     }
-
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data, timeout=2)
         return JsonResponse(response.json())
-
     except:
         return JsonResponse({
             "nivel": "bajo",
