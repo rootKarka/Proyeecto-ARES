@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import Mision
 
-# Register your models here.
+@admin.register(Mision)
+class MisionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'estado', 'tipo', 'robot', 'fecha_inicio')

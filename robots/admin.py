@@ -1,6 +1,6 @@
 from django.contrib import admin
-
 from .models import Robot, Control
+
 
 @admin.register(Robot)
 class RobotAdmin(admin.ModelAdmin):
@@ -9,4 +9,4 @@ class RobotAdmin(admin.ModelAdmin):
 
 @admin.register(Control)
 class ControlAdmin(admin.ModelAdmin):
-    list_display = ('id', 'robot', 'comando', 'estado', 'fecha')
+    list_display = ('id', 'robot', 'tipo_comando', 'estado', 'fecha_envio')

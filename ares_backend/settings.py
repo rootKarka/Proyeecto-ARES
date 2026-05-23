@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'sensores',
     'lecturas',
     'alertas',
+    'misiones',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
