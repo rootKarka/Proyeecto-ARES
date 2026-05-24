@@ -24,9 +24,9 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const [resR, resS, resL] = await Promise.all([
-          fetch('http://localhost:8000/api/robots/'),
-          fetch('http://localhost:8000/api/sensores/'),
-          fetch('http://localhost:8000/api/lecturas/')
+          fetch('http://192.168.1.36:8000/api/robots/'),
+          fetch('http://192.168.1.36:8000/api/sensores/'),
+          fetch('http://192.168.1.36:8000/api/lecturas/')
         ]);
 
         const robotsData = await resR.json();
