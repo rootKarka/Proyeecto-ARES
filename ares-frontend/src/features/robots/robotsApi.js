@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8000/api/robots/";
+import { API } from "../../config/api";
+const API_URL = API.robots;
 
 export const getRobots = async () => {
   const res = await fetch(API_URL);

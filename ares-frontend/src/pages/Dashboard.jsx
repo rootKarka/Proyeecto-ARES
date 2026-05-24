@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Bot, Cpu, Activity, CheckCircle, XCircle, Loader2, AlertTriangle, Database } from "lucide-react";
+import { API } from "../config/api";
 
-const API_ROBOTS   = "http://localhost:8000/api/robots/";
-const API_SENSORES = "http://localhost:8000/api/sensores/";
-const API_LECTURAS = "http://localhost:8000/api/lecturas/";
+const API_ROBOTS   = API.robots;
+const API_SENSORES = API.sensores;
+const API_LECTURAS = API.lecturas;
 
 export default function Dashboard() {
   const [data, setData]       = useState(null);
