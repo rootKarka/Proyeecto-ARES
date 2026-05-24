@@ -1,20 +1,22 @@
-import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar'; // Asegúrate de que la ruta importe correctamente tu componente
+import { useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import Header from './Header'
+import Sidebar from './Sidebar'
 
-const Layout = () => {
+function Layout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
-    <div className="flex h-screen bg-[#0A0A0A] text-[#E8E8E8] font-sans antialiased">
-      {/* Sidebar fijo */}
-      <Sidebar />
-
-      {/* Contenido principal con scroll */}
-      <main className="flex-1 overflow-y-auto bg-[#0C0D11]">
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-950">
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <main>
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout
