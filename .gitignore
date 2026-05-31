@@ -9,3 +9,5 @@ db.sqlite3
 **/migrations/[0-8]*.py
 **/migrations/9*.py
 **/migrations/__pycache__/
+
+simulador_arduino.py

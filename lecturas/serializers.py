@@ -42,4 +42,4 @@ class LecturaListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LecturaSensor
-        fields = ['tipo', 'valor', 'fecha', 'robot']
+        fields = ['id', 'sensor', 'tipo', 'valor', 'fecha', 'robot']

@@ -153,7 +153,9 @@ const Dashboard = () => {
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-[#E8E8E8]/40">Ubicación GPS:</span>
-              <span className="text-[#E8E8E8] font-mono">{robotActivo?.latitud.toFixed(3)}, {robotActivo?.longitud.toFixed(3)}</span>
+              <span className="text-[#E8E8E8] font-mono">
+                {robotActivo?.latitud ? parseFloat(robotActivo.latitud).toFixed(3) : "0.000"}, {robotActivo?.longitud ? parseFloat(robotActivo.longitud).toFixed(3) : "0.000"}
+              </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-[#E8E8E8]/40">Total Lecturas:</span>
