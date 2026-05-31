@@ -51,6 +51,11 @@ INSTALLED_APPS = [
     'alertas',
     'misiones',
     'usuarios',
+    'telemetria',
+    'evidencias',
+    'bitacora',
+    'reportes',
+    'mensajes',
 ]
 
 MIDDLEWARE = [

@@ -17,8 +17,7 @@ class LecturaSensor(models.Model):
     mision = models.ForeignKey(Mision, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Datos de lectura
-    valor     = models.FloatField()
-    valor_raw = models.FloatField()
+    valor= models.FloatField()
 
     # Coordenadas GPS
     latitud  = models.DecimalField(max_digits=10, decimal_places=7, default=0)

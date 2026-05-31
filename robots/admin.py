@@ -1,12 +1,7 @@
 from django.contrib import admin
-from .models import Robot, Control
+from .models import Robot
 
 
 @admin.register(Robot)
 class RobotAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre', 'estado', 'latitud', 'longitud')
-
-
-@admin.register(Control)
-class ControlAdmin(admin.ModelAdmin):
-    list_display = ('id', 'robot', 'tipo_comando', 'estado', 'fecha_envio')
+    list_display = ('id', 'nombre', 'estado', 'bateria_nivel', 'latitud', 'longitud', 'created_at')
