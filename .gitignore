@@ -4,3 +4,8 @@ __pycache__/
 db.sqlite3
 .env
 .vscode/
+
+# Ignorar los archivos de migraciones de Django
+**/migrations/[0-8]*.py
+**/migrations/9*.py
+**/migrations/__pycache__/
