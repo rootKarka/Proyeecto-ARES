@@ -1,8 +1,11 @@
 import { Pencil, Trash2 } from "lucide-react";
 
 const estadoConfig = {
-  Activo:   { dot: "bg-green-500", text: "text-green-600 dark:text-green-400", bg: "bg-green-500/10" },
-  Inactivo: { dot: "bg-red-500",   text: "text-red-600 dark:text-red-400",     bg: "bg-red-500/10"   },
+  DISPONIBLE:    { dot: "bg-green-500",  text: "text-green-700 dark:text-green-400",   bg: "bg-green-500/10", label: "Disponible" },
+  EN_MISION:     { dot: "bg-blue-500",   text: "text-blue-700 dark:text-blue-400",     bg: "bg-blue-500/10",  label: "En Misión" },
+  MANTENIMIENTO: { dot: "bg-orange-500", text: "text-orange-700 dark:text-orange-400", bg: "bg-orange-500/10", label: "En Mantenimiento" },
+  AVERIADO:      { dot: "bg-red-500",    text: "text-red-700 dark:text-red-400",       bg: "bg-red-500/10",   label: "Averiado" },
+  INACTIVO:      { dot: "bg-gray-500",   text: "text-gray-700 dark:text-gray-400",     bg: "bg-gray-500/10",  label: "Inactivo" },
 };
 
 const formatDate = (iso) => {
@@ -18,6 +21,7 @@ export default function RobotTable({ robots, onEdit, onDelete }) {
           <thead className="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50">
             <tr>
               <th className="p-4 text-left font-semibold">Nombre</th>
+              <th className="p-4 text-left font-semibold">MAC Address</th>
               <th className="p-4 text-left font-semibold">Estado</th>
               <th className="p-4 text-left font-semibold">Latitud</th>
               <th className="p-4 text-left font-semibold">Longitud</th>
@@ -27,24 +31,25 @@ export default function RobotTable({ robots, onEdit, onDelete }) {
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 dark:text-gray-300">
             {robots.map(robot => {
-              const cfg = estadoConfig[robot.estado] || estadoConfig.Inactivo;
+              const cfg = estadoConfig[robot.estado] || estadoConfig.INACTIVO;
               return (
                 <tr key={robot.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                   <td className="p-4 font-medium text-gray-800 dark:text-gray-100">{robot.nombre}</td>
+                  <td className="p-4 font-mono text-xs text-gray-500 dark:text-gray-400">{robot.mac_address || "—"}</td>
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                      {robot.estado}
+                      {cfg.label}
                     </span>
                   </td>
                   <td className="p-4 font-mono text-xs text-gray-500 dark:text-gray-400">{robot.latitud}</td>
                   <td className="p-4 font-mono text-xs text-gray-500 dark:text-gray-400">{robot.longitud}</td>
-                  <td className="p-4 text-gray-500 dark:text-gray-400">{formatDate(robot.fecha_registro)}</td>
+                  {/* Corregido: robot.created_at en lugar de robot.fecha_registro */}
+                  <td className="p-4 text-gray-500 dark:text-gray-400">{formatDate(robot.created_at)}</td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => onEdit(robot)}
-                        // CORRECCIÓN: hover:text-blue-500 hover:bg-blue-500/10 en lugar de violet
                         className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors"
                         title="Editar"
                       >

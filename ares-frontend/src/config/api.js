@@ -9,4 +9,5 @@ export const API = {
   robots:   `${BASE_URL}/robots/`,
   sensores: `${BASE_URL}/sensores/`,
   lecturas: `${BASE_URL}/lecturas/`,
+  misiones: `${BASE_URL}/misiones/`,
 };

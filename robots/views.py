@@ -17,27 +17,44 @@ class ControlViewSet(viewsets.ModelViewSet):
 # Endpoint para enviar comandos a los robots
 @api_view(['POST'])
 def control_robot(request):
-    comando = request.data.get('comando')
+    # Recibimos los nuevos nombres de los campos
+    tipo_comando = request.data.get('tipo_comando')
     robot_id = request.data.get('robot')
-    velocidad = request.data.get('velocidad', 0)
-    duracion = request.data.get('duracion', 0)
+    
+    # Si la app de Kotlin sigue enviando 'velocidad' y 'duracion' sueltos, 
+    # los atrapamos y los metemos en el JSON 'parametros' que exige el modelo.
+    parametros = request.data.get('parametros', {})
+    if not parametros:
+        parametros = {
+            "velocidad": request.data.get('velocidad', 0),
+            "duracion": request.data.get('duracion', 0)
+        }
 
-    comandos_validos = ["avanzar", "detener", "izquierda", "derecha"]
+    # Obtenemos la lista de comandos válidos directamente del modelo para no repetir código
+    comandos_validos = [choice[0] for choice in Control.TIPO_CHOICES]
 
-    if comando not in comandos_validos:
+    if tipo_comando not in comandos_validos:
         return Response({
             "status": "error",
-            "mensaje": "Comando inválido"
+            "mensaje": f"Comando inválido. Usa uno de: {comandos_validos}"
         }, status=400)
 
-    control = Control.objects.create(
-        robot_id=robot_id,
-        comando=comando,
-        velocidad=velocidad,
-        duracion=duracion
-    )
+    try:
+        # Creamos el registro con la nueva estructura
+        control = Control.objects.create(
+            robot_id=robot_id,
+            tipo_comando=tipo_comando,
+            parametros=parametros,
+            estado='ENVIADO' # Estado inicial por defecto
+        )
 
-    return Response({
-        "status": "ok",
-        "id": control.id
-    })
+        return Response({
+            "status": "ok",
+            "id": control.id,
+            "mensaje": "Comando encolado correctamente"
+        })
+    except Exception as e:
+        return Response({
+            "status": "error",
+            "mensaje": str(e)
+        }, status=500)

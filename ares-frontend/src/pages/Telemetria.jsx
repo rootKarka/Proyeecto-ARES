@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Activity, Wifi, WifiOff, Loader2, Database, ChevronDown, Cpu, Radio, MapPin, AlertTriangle } from "lucide-react";
 
-const API_ROBOTS   = "http://localhost:8000/api/robots/";
-const API_SENSORES = "http://localhost:8000/api/sensores/";
-const API_LECTURAS = "http://localhost:8000/api/lecturas/";
+import { API } from "../config/api";
+const API_ROBOTS   = API.robots;
+const API_SENSORES = API.sensores;
+const API_LECTURAS = API.lecturas;
 
 export default function Telemetria() {
   const [robots, setRobots]               = useState([]);
@@ -103,12 +104,12 @@ export default function Telemetria() {
 
             {/* Badge estado */}
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
-              robotActivo?.estado === "Activo"
+              robotActivo?.estado === "DISPONIBLE"
                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 : "bg-red-500/10 text-red-500 dark:text-red-400"
             }`}>
-              {robotActivo?.estado === "Activo" ? <Wifi size={13} /> : <WifiOff size={13} />}
-              {robotActivo?.estado?.toUpperCase()}
+              {robotActivo?.estado === "DISPONIBLE" ? <Wifi size={13} /> : <WifiOff size={13} />}
+              {robotActivo?.estado?.replace('_', ' ')}
             </span>
           </div>
         </div>
@@ -170,7 +171,7 @@ export default function Telemetria() {
                 <MapPin size={13} /> Ubicación GPS
               </span>
               <span className="font-mono text-gray-800 dark:text-gray-100 text-xs">
-                {robotActivo?.latitud?.toFixed(4)}, {robotActivo?.longitud?.toFixed(4)}
+                {parseFloat(robotActivo?.latitud)?.toFixed(4)}, {parseFloat(robotActivo?.longitud)?.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between items-center text-sm border-t border-gray-100 dark:border-gray-800 pt-3">

@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/', include('sensores.urls')),
     path('api/', include('lecturas.urls')),
     path('api/', include('alertas.urls')),
+    path('api/', include('misiones.urls')),
 ]

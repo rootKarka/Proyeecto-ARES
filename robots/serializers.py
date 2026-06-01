@@ -4,8 +4,7 @@ from .models import Robot, Control
 class ControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = Control
-        fields = ['comando', 'velocidad', 'duracion', 'estado', 'fecha']
-
+        fields = '__all__'
 
 class RobotSerializer(serializers.ModelSerializer):
     controles = ControlSerializer(many=True, read_only=True)
