@@ -1,142 +1,104 @@
 import { useState, useEffect } from "react";
-import {
-  Activity,
-  Gauge,
-  Wifi,
-  WifiOff,
-  Radio,
-  Loader2,
-  Database,
-  ChevronDown,
-  Cpu
-} from "lucide-react";
+import { Bot, Cpu, Activity, CheckCircle, XCircle, Loader2, AlertTriangle, Database } from "lucide-react";
+import { API } from "../config/api";
 
-const Dashboard = () => {
-  const [robots, setRobots] = useState([]);
-  const [selectedRobotId, setSelectedRobotId] = useState(null);
-  const [sensores, setSensores] = useState([]);
-  const [lecturas, setLecturas] = useState([]);
+const API_ROBOTS   = API.robots;
+const API_SENSORES = API.sensores;
+const API_LECTURAS = API.lecturas;
+
+export default function Dashboard() {
+  const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError]     = useState(false);
 
-  // 1. Carga inicial de datos
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAll = async () => {
       try {
         const [resR, resS, resL] = await Promise.all([
-          fetch('http://localhost:8000/api/robots/'),
-          fetch('http://localhost:8000/api/sensores/'),
-          fetch('http://localhost:8000/api/lecturas/')
+          fetch(API_ROBOTS),
+          fetch(API_SENSORES),
+          fetch(API_LECTURAS),
         ]);
-
-        const robotsData = await resR.json();
-        const sensoresData = await resS.json();
-        const lecturasData = await resL.json();
-
-        if (robotsData.length === 0) throw new Error("NO_ROBOTS");
-
-        setRobots(robotsData);
-        setSensores(sensoresData);
-        setLecturas(lecturasData.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
-        
-        // Seleccionar el primer robot por defecto
-        setSelectedRobotId(robotsData[0].id);
-      } catch (err) {
-        setError(err.message === "NO_ROBOTS" ? "no_robots" : "fetch_error");
+        const robots   = await resR.json();
+        const sensores = await resS.json();
+        const lecturas = await resL.json();
+        setData({ robots, sensores, lecturas });
+      } catch {
+        setError(true);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchAll();
   }, []);
 
-  // 2. Filtrado dinámico según el robot seleccionado
-  const robotActivo = robots.find(r => r.id === selectedRobotId);
-  const sensoresDelRobot = sensores.filter(s => s.robot === selectedRobotId);
-  
-  // Obtener la última lectura de cada sensor del robot activo
-  const ultimasLecturas = sensoresDelRobot.map(s => {
-    const lectura = lecturas.find(l => l.sensor === s.id);
-    return { ...s, ultimaLectura: lectura };
-  });
-
-  const formatTime = (isoString) => {
-    if (!isoString) return "--:--:--";
-    return new Date(isoString).toLocaleTimeString("es-ES");
-  };
-
   if (loading) return (
-    <div className="flex flex-col items-center justify-center h-64 space-y-4">
-      <Loader2 className="text-[#1F70C1] animate-spin" size={40} />
-      <p className="text-[#E8E8E8]/60">Sincronizando flota...</p>
+    <div className="flex items-center justify-center h-64 gap-3">
+      <Loader2 className="text-blue-600 dark:text-blue-400 animate-spin" size={32} />
+      <span className="text-sm text-gray-500 dark:text-gray-400">Cargando sistema...</span>
     </div>
   );
 
   if (error) return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-[#0A0A0A] border border-[#2C2F3B] rounded-xl p-10 text-center">
-      <Database size={48} className="text-[#E8E8E8]/20 mb-4" />
-      <h2 className="text-xl font-bold text-[#E8E8E8]">Error de Conexión</h2>
-      <p className="text-[#E8E8E8]/50 mt-2">{error === "no_robots" ? "No hay robots en la DB." : "Verifica tu servidor Django."}</p>
+    <div className="flex flex-col items-center justify-center min-h-[400px] bg-white dark:bg-gray-900 shadow-xs rounded-xl p-10 text-center border border-gray-100 dark:border-gray-800">
+      <AlertTriangle size={40} className="text-red-400 mb-3" />
+      <p className="font-semibold text-gray-800 dark:text-gray-100">No se pudo conectar al servidor</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Verifica que Django esté corriendo.</p>
     </div>
   );
 
+  const { robots, sensores, lecturas } = data;
+  const activos   = robots.filter(r => r.estado === "Activo").length;
+  const inactivos = robots.length - activos;
+
+  const ultimasLecturas = [...lecturas]
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    .slice(0, 5);
+
+  const formatTime = (iso) => {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
+  };
+
+  const statCards = [
+    { label: "Robots registrados", value: robots.length,   icon: Bot,         color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-600/10"    },
+    { label: "Robots activos",     value: activos,          icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10" },
+    { label: "Robots inactivos",   value: inactivos,        icon: XCircle,     color: "text-red-500 dark:text-red-400",      bg: "bg-red-500/10"     },
+    { label: "Sensores",           value: sensores.length,  icon: Cpu,         color: "text-blue-600 dark:text-blue-400",    bg: "bg-blue-600/10"    },
+    { label: "Total lecturas",     value: lecturas.length,  icon: Activity,    color: "text-slate-600 dark:text-slate-400",  bg: "bg-slate-500/10"   },
+    {
+      label: "Lecturas hoy",
+      value: lecturas.filter(l => new Date(l.fecha).toDateString() === new Date().toDateString()).length,
+      icon: Database,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-600/10",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* HEADER CON SELECTOR */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-[#0A0A0A] p-6 rounded-xl border border-[#2C2F3B]">
-        <div>
-          <h1 className="text-2xl font-bold text-[#E8E8E8] tracking-tight flex items-center gap-2">
-            <Activity className="text-[#1F70C1]" /> TELEMETRÍA DINÁMICA
-          </h1>
-          <p className="text-[#E8E8E8]/60 text-sm mt-1">Monitoreando: <span className="text-[#1F70C1] font-bold">{robotActivo?.nombre}</span></p>
-        </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto space-y-6">
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <select 
-              value={selectedRobotId || ""}
-              onChange={(e) => setSelectedRobotId(parseInt(e.target.value))}
-              className="appearance-none bg-[#1a1c26] border border-[#2C2F3B] text-[#E8E8E8] py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:border-[#1F70C1] cursor-pointer text-sm"
-            >
-              {robots.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-            </select>
-            <ChevronDown className="absolute right-3 top-2.5 text-[#E8E8E8]/40 pointer-events-none" size={16} />
-          </div>
-
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${robotActivo?.estado === "Activo" ? "border-green-500/30 bg-green-500/10 text-green-400" : "border-red-500/30 bg-red-500/10 text-red-400"} text-xs font-mono`}>
-            {robotActivo?.estado === "Activo" ? <Wifi size={14} /> : <WifiOff size={14} />}
-            {robotActivo?.estado?.toUpperCase()}
-          </div>
-        </div>
+      {/* Título */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Resumen general del sistema ARES</p>
       </div>
 
-      {/* TARJETAS DE SENSORES DINÁMICAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {ultimasLecturas.length > 0 ? (
-          ultimasLecturas.map((sensor) => (
-            <div key={sensor.id} className="bg-[#0A0A0A] border border-[#2C2F3B] rounded-xl p-5 hover:border-[#1F70C1]/50 transition-colors">
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-[#2C2F3B] rounded-lg">
-                    <Cpu className="text-[#1F70C1]" size={20} />
-                  </div>
-                  <span className="text-[#E8E8E8]/80 uppercase text-xs font-bold tracking-widest">{sensor.tipo}</span>
-                </div>
-                {sensor.ultimaLectura && (
-                   <span className="text-[10px] text-green-500 font-mono animate-pulse">LIVE</span>
-                )}
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {statCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div key={i} className="bg-white dark:bg-gray-900 shadow-xs rounded-xl p-5 flex items-center gap-4 border border-gray-100 dark:border-gray-800">
+              <div className={`w-12 h-12 flex items-center justify-center rounded-xl shrink-0 ${card.bg}`}>
+                <Icon size={22} className={card.color} />
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-[#E8E8E8]">
-                  {sensor.ultimaLectura ? sensor.ultimaLectura.valor.toFixed(1) : "---"}
-                </span>
-                <span className="text-[#E8E8E8]/40 text-lg">{sensor.unidad}</span>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">{card.label}</p>
+                <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">{card.value}</p>
               </div>
-              <p className="text-[10px] text-[#E8E8E8]/30 mt-4 flex justify-between">
-                <span>ÚLTIMA SEÑAL:</span>
-                <span>{formatTime(sensor.ultimaLectura?.fecha)}</span>
-              </p>
             </div>
+<<<<<<< HEAD
           ))
         ) : (
           <div className="col-span-full p-10 border border-dashed border-[#2C2F3B] rounded-xl text-center text-[#E8E8E8]/40">
@@ -163,43 +125,100 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+=======
+          );
+        })}
+>>>>>>> 3facb3f1702579cbaa1c2c0f32eec1c7b6359d31
       </div>
 
-      {/* TABLA DE HISTORIAL FILTRADA */}
-      <div className="bg-[#0A0A0A] border border-[#2C2F3B] rounded-xl p-6">
-        <h2 className="text-sm font-bold text-[#E8E8E8] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-          <Database size={16} className="text-[#1F70C1]" /> Log de Registros
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-[#E8E8E8]/30 border-b border-[#2C2F3B] text-[10px] uppercase">
-              <tr>
-                <th className="pb-3 font-medium">Timestamp</th>
-                <th className="pb-3 font-medium">Sensor</th>
-                <th className="pb-3 font-medium">Valor</th>
-                <th className="pb-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#2C2F3B]">
-              {lecturas
-                .filter(l => sensoresDelRobot.some(s => s.id === l.sensor))
-                .slice(0, 8)
-                .map((l, i) => (
-                  <tr key={i} className="text-[#E8E8E8]/70 hover:bg-[#1a1c26] transition-colors">
-                    <td className="py-3 font-mono text-xs">{formatTime(l.fecha)}</td>
-                    <td className="py-3">{sensores.find(s => s.id === l.sensor)?.tipo}</td>
-                    <td className="py-3 font-bold text-[#E8E8E8]">{l.valor.toFixed(2)}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-green-500/10 text-green-500 text-[10px]">PROCESADO</span>
-                    </td>
+      {/* Flota + Últimas lecturas */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+        {/* Estado de la flota */}
+        <div className="bg-white dark:bg-gray-900 shadow-xs rounded-xl border border-gray-100 dark:border-gray-800">
+          <header className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+            <Bot size={16} className="text-blue-600 dark:text-blue-400" />
+            <h2 className="font-semibold text-gray-800 dark:text-gray-100">Estado de la flota</h2>
+          </header>
+          <div className="p-3">
+            {robots.length === 0 ? (
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No hay robots registrados.</p>
+            ) : (
+              <table className="table-auto w-full text-sm">
+                <thead className="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/60">
+                  <tr>
+                    <th className="p-3 text-left font-semibold">Nombre</th>
+                    <th className="p-3 text-left font-semibold">Estado</th>
+                    <th className="p-3 text-left font-semibold">Sensores</th>
                   </tr>
-                ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {robots.map(robot => {
+                    const isActivo  = robot.estado === "Activo";
+                    const nSensores = sensores.filter(s => s.robot === robot.id).length;
+                    return (
+                      <tr key={robot.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                        <td className="p-3 font-medium text-gray-800 dark:text-gray-100">{robot.nombre}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                            isActivo ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                     : "bg-red-500/10 text-red-500 dark:text-red-400"
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${isActivo ? "bg-emerald-500" : "bg-red-500"}`} />
+                            {robot.estado}
+                          </span>
+                        </td>
+                        <td className="p-3 text-gray-500 dark:text-gray-400">
+                          {nSensores} sensor{nSensores !== 1 ? "es" : ""}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
+
+        {/* Últimas lecturas */}
+        <div className="bg-white dark:bg-gray-900 shadow-xs rounded-xl border border-gray-100 dark:border-gray-800">
+          <header className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+            <Activity size={16} className="text-blue-600 dark:text-blue-400" />
+            <h2 className="font-semibold text-gray-800 dark:text-gray-100">Últimas lecturas</h2>
+          </header>
+          <div className="p-3">
+            {ultimasLecturas.length === 0 ? (
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No hay lecturas registradas.</p>
+            ) : (
+              <table className="table-auto w-full text-sm">
+                <thead className="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/60">
+                  <tr>
+                    <th className="p-3 text-left font-semibold">Sensor</th>
+                    <th className="p-3 text-left font-semibold">Valor</th>
+                    <th className="p-3 text-left font-semibold">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {ultimasLecturas.map((l, i) => {
+                    const sensor = sensores.find(s => s.id === l.sensor);
+                    return (
+                      <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                        <td className="p-3 font-medium text-gray-800 dark:text-gray-100">{sensor?.tipo || "—"}</td>
+                        <td className="p-3 font-mono font-semibold text-blue-600 dark:text-blue-400">
+                          {l.valor?.toFixed(2)}{" "}
+                          <span className="text-gray-400 dark:text-gray-500 font-normal text-xs">{sensor?.unidad}</span>
+                        </td>
+                        <td className="p-3 text-xs text-gray-500 dark:text-gray-400 font-mono">{formatTime(l.fecha)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
