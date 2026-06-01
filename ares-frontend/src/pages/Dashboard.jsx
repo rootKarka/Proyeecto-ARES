@@ -98,37 +98,8 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">{card.value}</p>
               </div>
             </div>
-<<<<<<< HEAD
-          ))
-        ) : (
-          <div className="col-span-full p-10 border border-dashed border-[#2C2F3B] rounded-xl text-center text-[#E8E8E8]/40">
-            Este robot no tiene sensores vinculados.
-          </div>
-        )}
-
-        {/* Tarjeta Informativa del Sistema */}
-        <div className="bg-[#0A0A0A] border border-[#2C2F3B] rounded-xl p-5 flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-4">
-            <Radio className="text-[#1F70C1]" size={20} />
-            <span className="text-[#E8E8E8]/80 uppercase text-xs font-bold">Resumen de Red</span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-[#E8E8E8]/40">Ubicación GPS:</span>
-              <span className="text-[#E8E8E8] font-mono">
-                {robotActivo?.latitud ? parseFloat(robotActivo.latitud).toFixed(3) : "0.000"}, {robotActivo?.longitud ? parseFloat(robotActivo.longitud).toFixed(3) : "0.000"}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-[#E8E8E8]/40">Total Lecturas:</span>
-              <span className="text-[#1F70C1] font-bold">{lecturas.filter(l => sensoresDelRobot.some(s => s.id === l.sensor)).length}</span>
-            </div>
-          </div>
-        </div>
-=======
           );
         })}
->>>>>>> 3facb3f1702579cbaa1c2c0f32eec1c7b6359d31
       </div>
 
       {/* Flota + Últimas lecturas */}
