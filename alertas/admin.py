@@ -3,7 +3,4 @@ from .models import Alerta
 
 @admin.register(Alerta)
 class AlertaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nivel', 'mensaje', 'lectura', 'fecha')
-    list_filter = ('nivel', 'fecha')
-    search_fields = ('mensaje',)
-    ordering = ('-fecha',)
+    list_display = ('id', 'nivel', 'tipo', 'robot', 'mision', 'notificacion_enviada', 'fecha')

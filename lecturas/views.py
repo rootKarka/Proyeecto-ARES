@@ -18,7 +18,7 @@ class LecturaViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # 1. GUARDADO INMEDIATO:
-        # Django guarda en SQLite y genera el ID de la lectura.
+        # Django guarda y genera el ID de la lectura.
         lectura = serializer.save()
 
         # 2. FUNCIÓN DE ANÁLISIS (Tarea en segundo plano):
@@ -40,12 +40,18 @@ class LecturaViewSet(viewsets.ModelViewSet):
                 if response.status_code == 200:
                     result = response.json()
                     
-                    # Si Spring detecta algo que NO sea nivel "bajo", creamos la alerta
-                    if result.get("nivel") != "bajo":
+                    # Si Spring detecta algo que NO sea nivel "NORMAL", creamos la alerta
+                    if result.get("nivel") != "NORMAL":
                         Alerta.objects.create(
-                            nivel=result.get("nivel", "desconocido"),
+                            nivel=result.get("nivel", "INFO"),
+                            tipo=result.get("tipo", "GAS_TOXICO"),
                             mensaje=result.get("mensaje", "Sin mensaje"),
-                            lectura=obj_lectura
+                            lectura=obj_lectura,
+                            robot=obj_lectura.robot,
+                            mision=obj_lectura.mision,
+                            valor_detectado=obj_lectura.valor,
+                            latitud=obj_lectura.latitud,
+                            longitud=obj_lectura.longitud
                         )
             except Exception as e:
                 # Si Spring está apagado o hay error, lo imprime en la consola de Django
@@ -63,18 +69,20 @@ class LecturaViewSet(viewsets.ModelViewSet):
 
 
 # 🔹 VISTA DE PRUEBA (MANTENIDA PARA TESTEAR SPRING)
+"""
 @api_view(['GET'])
 def analizar_sensor(request):
     url = "http://localhost:8080/api/analizar"
     data = {
         "tipo": "gas",
-        "valor": 400
+        "valor": 100
     }
     try:
         response = requests.post(url, json=data, timeout=2)
         return JsonResponse(response.json())
     except:
         return JsonResponse({
-            "nivel": "bajo",
+            "nivel": "NORMAL",
             "mensaje": "Error conectando con Spring"
         })
+"""
