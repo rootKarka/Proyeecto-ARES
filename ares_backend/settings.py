@@ -24,7 +24,12 @@ SECRET_KEY = 'django-insecure-ka8uy5&vg9i#j(@8phthavju_b$3fmsnf&v&(2nm45mrmrv$$t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
+<<<<<<< HEAD
 ALLOWED_HOSTS = ["*"]
+=======
+DEBUG = True
+ALLOWED_HOSTS = ['*']
+>>>>>>> 47fd78ac4a570264c98de4804d99bb1a683a6cc1
 
 
 # Application definition
@@ -93,12 +98,8 @@ WSGI_APPLICATION = 'ares_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bd_ares',
-        'USER': 'assistant',
-        'PASSWORD': 'ares248',
-        'HOST': 'localhost',
-        'PORT': '5432',   
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
