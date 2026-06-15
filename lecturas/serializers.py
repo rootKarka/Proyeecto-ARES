@@ -14,9 +14,5 @@ class LecturaListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LecturaSensor
-<<<<<<< HEAD
         # AQUÍ ESTÁ LA MAGIA: Agregamos 'id', 'sensor' y 'estado_procesamiento'
         fields = ['id', 'sensor', 'tipo', 'valor', 'fecha', 'robot', 'estado_procesamiento']
-=======
-        fields = ['id', 'sensor', 'tipo', 'valor', 'fecha', 'robot']
->>>>>>> ad6ae9bc8b9e0515826d1134ac5c1cfae274c1db

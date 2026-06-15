@@ -48,16 +48,18 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         <NavLink
           end={exact}
           to={to}
-          // AGREGADO: onClick para que expanda el sidebar al hacer clic en un ícono si está cerrado
-          onClick={() => {
-            if (!sidebarExpanded) {
-              setSidebarExpanded(true);
-            }
-          }}
-          className={`block truncate transition duration-150 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
+          onClick={() => { if (!sidebarExpanded) setSidebarExpanded(true); }}
+          className={`block truncate transition duration-150 ${
+            isActive
+              ? "text-blue-600 dark:text-blue-400"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          }`}
         >
           <div className="flex items-center">
-            <svg className={`shrink-0 fill-current ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+            <svg
+              className={`shrink-0 fill-current ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}
+              xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+            >
               {icon}
             </svg>
             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
@@ -83,9 +85,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       <div
         id="sidebar"
         ref={sidebar}
-        className={`flex lg:flex! flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:w-64! shrink-0 bg-white dark:bg-gray-900 p-4 transition-all duration-200 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-64"
-        } rounded-r-2xl shadow-sm border-r border-gray-100 dark:border-gray-800`}
+        className={`flex lg:flex! flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto
+          lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar
+          w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:w-64! shrink-0
+          bg-white dark:bg-gray-900 p-4 transition-all duration-200 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-64"}
+          rounded-r-2xl shadow-sm border-r border-gray-100 dark:border-gray-800`}
       >
         {/* Header */}
         <div className="flex justify-between mb-10 pr-3 sm:px-2">
@@ -117,6 +122,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
         {/* Nav links */}
         <div className="space-y-8">
+
+          {/* Grupo: Principal */}
           <div>
             <h3 className="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
               <span className="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
@@ -124,34 +131,53 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             </h3>
             <ul className="mt-3 space-y-0.5">
 
-              {/* Dashboard */}
               {navItem("/", "Dashboard",
-                <><path d="M1 3h6v6H1zM9 3h6v6H9zM1 11h6v4H1zM9 11h6v4H9z"/></>,
+                <path d="M1 3h6v6H1zM9 3h6v6H9zM1 11h6v4H1zM9 11h6v4H9z"/>,
                 true
               )}
 
-              {/* Telemetría */}
               {navItem("/telemetria", "Telemetría",
-                <><path d="M8 0a1 1 0 0 1 1 1v.5a5.5 5.5 0 0 1 4.5 5.5v.5h.5a1 1 0 1 1 0 2H2a1 1 0 1 1 0-2h.5V7A5.5 5.5 0 0 1 7 1.5V1a1 1 0 0 1 1-1ZM4.5 7v.5h7V7a3.5 3.5 0 1 0-7 0ZM6 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Z"/></>
+                <path d="M8 0a1 1 0 0 1 1 1v.5a5.5 5.5 0 0 1 4.5 5.5v.5h.5a1 1 0 1 1 0 2H2a1 1 0 1 1 0-2h.5V7A5.5 5.5 0 0 1 7 1.5V1a1 1 0 0 1 1-1ZM4.5 7v.5h7V7a3.5 3.5 0 1 0-7 0ZM6 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Z"/>
               )}
 
-              {/* Robots */}
               {navItem("/robots", "Robots",
-                <><path d="M8 0a1 1 0 0 1 1 1v1h1a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3h1V1a1 1 0 0 1 1-1Zm0 4H6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8ZM6 7a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm0 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Z"/></>
+                <path d="M8 0a1 1 0 0 1 1 1v1h1a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3h1V1a1 1 0 0 1 1-1Zm0 4H6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8ZM6 7a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm0 3a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Z"/>
               )}
 
-              {/* Sensores */}
               {navItem("/sensores", "Sensores",
                 <><path d="M5.936.278A7.983 7.983 0 0 1 8 0a8 8 0 1 1-8 8c0-.722.104-1.413.278-2.064a1 1 0 1 1 1.932.516A5.99 5.99 0 0 0 2 8a6 6 0 1 0 6-6c-.53 0-1.045.076-1.548.21A1 1 0 1 1 5.936.278Z"/><path d="M6.068 7.482A2.003 2.003 0 0 0 8 10a2 2 0 1 0-.518-3.932L3.707 2.293a1 1 0 0 0-1.414 1.414l3.775 3.775Z"/></>
               )}
 
-              {/* Misiones */}
               {navItem("/misiones", "Misiones",
-                <><path d="M14.5 1.5l-5-1.5-4 2-4-2v11.5l4 2 4-2 5 1.5v-11.5zM6.5 12.5l-4-2v-8.5l4 2v8.5zm5-1.5l-4 2v-8.5l4-2v8.5zm4 2l-3-1v-8.5l3 1v8.5z"/></>
+                <path d="M14.5 1.5l-5-1.5-4 2-4-2v11.5l4 2 4-2 5 1.5v-11.5zM6.5 12.5l-4-2v-8.5l4 2v8.5zm5-1.5l-4 2v-8.5l4-2v8.5zm4 2l-3-1v-8.5l3 1v8.5z"/>
               )}
 
             </ul>
           </div>
+
+          {/* Grupo: Gestión */}
+          <div>
+            <h3 className="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
+              <span className="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
+              <span className="lg:hidden lg:sidebar-expanded:block 2xl:block">Gestión</span>
+            </h3>
+            <ul className="mt-3 space-y-0.5">
+
+              {navItem("/usuarios", "Usuarios",
+                <path d="M8 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 1c-3.87 0-7 1.79-7 4v1h14v-1c0-2.21-3.13-4-7-4Z"/>
+              )}
+
+              {navItem("/reportes", "Reportes",
+                <><path d="M3 1h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Zm0 1v12h10V2H3Z"/><path d="M5 5h6v1H5zm0 3h6v1H5zm0 3h4v1H5z"/></>
+              )}
+
+              {navItem("/mensajes", "Mensajes",
+                <><path d="M14 1H2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h2v3l3-3h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1Zm-1 9H3V3h10v7Z"/></>
+              )}
+
+            </ul>
+          </div>
+
         </div>
 
         {/* Botón expandir/colapsar */}
@@ -162,12 +188,16 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               onClick={() => setSidebarExpanded(!sidebarExpanded)}
             >
               <span className="sr-only">Expand / collapse sidebar</span>
-              <svg className={`shrink-0 fill-current transition-transform duration-200 ${sidebarExpanded ? "rotate-180" : ""}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+              <svg
+                className={`shrink-0 fill-current transition-transform duration-200 ${sidebarExpanded ? "rotate-180" : ""}`}
+                xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"
+              >
                 <path d="M15 16a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v14a1 1 0 0 1-1 1ZM8.586 7H1a1 1 0 1 0 0 2h7.586l-2.793 2.793a1 1 0 1 0 1.414 1.414l4.5-4.5A.997.997 0 0 0 12 8.01M11.924 7.617a.997.997 0 0 0-.217-.324l-4.5-4.5a1 1 0 0 0-1.414 1.414L8.586 7M12 7.99a.996.996 0 0 0-.076-.373Z" />
               </svg>
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
