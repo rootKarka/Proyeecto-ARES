@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import LecturaSensor
 
-admin.site.register(LecturaSensor)
-
-# Register your models here.
+@admin.register(LecturaSensor)
+class LecturaSensorAdmin(admin.ModelAdmin):
+    list_display = ('id', 'sensor', 'robot', 'valor', 'nivel_alerta', 'estado_procesamiento', 'fecha')

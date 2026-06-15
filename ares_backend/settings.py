@@ -23,7 +23,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ka8uy5&vg9i#j(@8phthavju_b$3fmsnf&v&(2nm45mrmrv$$t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -48,6 +47,14 @@ INSTALLED_APPS = [
     'robots',
     'sensores',
     'lecturas',
+    'alertas',
+    'misiones',
+    'usuarios',
+    'telemetria',
+    'evidencias',
+    'bitacora',
+    'reportes',
+    'mensajes',
 ]
 
 MIDDLEWARE = [
@@ -86,8 +93,12 @@ WSGI_APPLICATION = 'ares_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'bd_ares',
+        'USER': 'assistant',
+        'PASSWORD': 'ares248',
+        'HOST': 'localhost',
+        'PORT': '5432',   
     }
 }
 
