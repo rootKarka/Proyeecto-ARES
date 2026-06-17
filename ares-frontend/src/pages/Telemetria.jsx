@@ -170,7 +170,7 @@ export default function Telemetria() {
                 <MapPin size={13} /> Ubicación GPS
               </span>
               <span className="font-mono text-gray-800 dark:text-gray-100 text-xs">
-                {robotActivo?.latitud?.toFixed(4)}, {robotActivo?.longitud?.toFixed(4)}
+                {robotActivo?.latitud ? parseFloat(robotActivo.latitud).toFixed(3) : "0.000"}, {robotActivo?.longitud ? parseFloat(robotActivo.longitud).toFixed(3) : "0.000"}
               </span>
             </div>
             <div className="flex justify-between items-center text-sm border-t border-gray-100 dark:border-gray-800 pt-3">
