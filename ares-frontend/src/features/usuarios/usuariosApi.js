@@ -1,15 +1,18 @@
 import { API } from "../../config/api";
 const API_URL = API.usuarios;
 
-export const getUsuarios = async () => {
-  const res = await fetch(API_URL);
+export const getUsuarios = async (sede = null) => {
+  const url = sede ? `${API_URL}?sede=${sede}` : API_URL;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Error al obtener usuarios");
   return res.json();
 };
 
-// Solo operadores activos — para el selector de misiones
-export const getOperadores = async () => {
-  const res = await fetch(`${API_URL}operadores/`);
+export const getOperadores = async (sede = null) => {
+  const url = sede
+    ? `${API_URL}operadores/?sede=${sede}`
+    : `${API_URL}operadores/`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Error al obtener operadores");
   return res.json();
 };

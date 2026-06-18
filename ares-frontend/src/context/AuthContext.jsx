@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Al recargar, recuperamos sesión guardada
     try {
       const stored = localStorage.getItem("ares_user");
       if (stored) setUser(JSON.parse(stored));
@@ -19,29 +18,32 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-  const res = await fetch("http://localhost:8000/api/usuarios/");
-  if (!res.ok) throw new Error("No se pudo conectar al servidor.");
-  const usuarios = await res.json();
+    const res = await fetch("http://localhost:8000/api/usuarios/");
+    if (!res.ok) throw new Error("No se pudo conectar al servidor.");
+    const usuarios = await res.json();
 
-  const found = usuarios.find(
-    (u) => u.email === email.trim().toLowerCase()
-  );
+    const found = usuarios.find(
+      (u) => u.email === email.trim().toLowerCase()
+    );
 
-  if (!found)          throw new Error("Credenciales incorrectas.");
-  if (!found.activo)   throw new Error("Tu cuenta está desactivada.");
-  if (found.rol !== "ADMIN") throw new Error("No tienes permiso para acceder al panel de administración.");
+    if (!found)                throw new Error("Credenciales incorrectas.");
+    if (!found.activo)         throw new Error("Tu cuenta está desactivada.");
+    if (found.rol !== "ADMIN") throw new Error("No tienes permiso para acceder al panel de administración.");
 
-  const sessionUser = {
-    id:     found.id,
-    nombre: found.nombre,
-    email:  found.email,
-    rol:    found.rol,
+    localStorage.removeItem("ares_user");
+
+    const sessionUser = {
+      id:     found.id,
+      nombre: found.nombre,
+      email:  found.email,
+      rol:    found.rol,
+      sede:   found.sede,   // ← NUEVO
+    };
+
+    localStorage.setItem("ares_user", JSON.stringify(sessionUser));
+    setUser(sessionUser);
+    return sessionUser;
   };
-
-  localStorage.setItem("ares_user", JSON.stringify(sessionUser));
-  setUser(sessionUser);
-  return sessionUser;
-};
 
   const logout = () => {
     localStorage.removeItem("ares_user");

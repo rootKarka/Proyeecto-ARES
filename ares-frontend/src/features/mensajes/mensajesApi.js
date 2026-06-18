@@ -1,8 +1,8 @@
-import { API } from "../../config/api";
+import { API, withSede } from "../../config/api";
 const API_URL = API.mensajes;
 
-export const getMensajes = async () => {
-  const res = await fetch(API_URL);
+export const getMensajes = async (sede = null) => {
+  const res = await fetch(withSede(API_URL, sede));
   if (!res.ok) throw new Error("Error al obtener mensajes");
   return res.json();
 };

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Loader2, AlertTriangle } from "lucide-react";
 
 import { getRobots, createRobot, updateRobot, deleteRobot } from "../features/robots/robotsApi";
+import { useAuth } from "../context/AuthContext";
 import RobotTable from "../features/robots/RobotTable";
 import RobotForm from "../features/robots/RobotForm";
 import Modal from "../components/Modal";
@@ -9,6 +10,9 @@ import ConfirmDelete from "../components/ConfirmDelete";
 import Toast from "../components/Toast";
 
 export default function Robots() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [robots, setRobots]           = useState([]);
   const [loading, setLoading]         = useState(true);
   const [formLoading, setFormLoading] = useState(false);
@@ -24,13 +28,13 @@ export default function Robots() {
     try {
       setFetchError(false);
       setLoading(true);
-      setRobots(await getRobots());
+      setRobots(await getRobots(sede));
     } catch {
       setFetchError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchRobots(); }, [fetchRobots]);
 

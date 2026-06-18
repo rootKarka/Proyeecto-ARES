@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FileText, ClipboardList, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { getReportesActualizacion, getReportesFinales } from "../features/reportes/reportesApi";
+import { useAuth } from "../context/AuthContext";
 
 const NIVEL_CONFIG = {
   NORMAL:      { bg: "bg-gray-500/10",   text: "text-gray-700 dark:text-gray-400"     },
@@ -21,7 +22,7 @@ const formatDate = (iso) => {
 };
 
 // ── Tab: Reportes de Actualización ────────────────────────────
-function TabActualizaciones() {
+function TabActualizaciones({ sede }) {
   const [reportes, setReportes] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(false);
@@ -30,13 +31,13 @@ function TabActualizaciones() {
     try {
       setError(false);
       setLoading(true);
-      setReportes(await getReportesActualizacion());
+      setReportes(await getReportesActualizacion(null, sede));
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -119,7 +120,7 @@ function TabActualizaciones() {
 }
 
 // ── Tab: Reportes Finales ──────────────────────────────────────
-function TabFinales() {
+function TabFinales({ sede }) {
   const [reportes, setReportes] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(false);
@@ -128,13 +129,13 @@ function TabFinales() {
     try {
       setError(false);
       setLoading(true);
-      setReportes(await getReportesFinales());
+      setReportes(await getReportesFinales(sede));
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -233,6 +234,9 @@ function TabFinales() {
 
 // ── Página principal ───────────────────────────────────────────
 export default function Reportes() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [tab, setTab] = useState("actualizacion"); // "actualizacion" | "final"
 
   return (
@@ -269,7 +273,7 @@ export default function Reportes() {
         </div>
 
         <div className="p-2">
-          {tab === "actualizacion" ? <TabActualizaciones /> : <TabFinales />}
+          {tab === "actualizacion" ? <TabActualizaciones sede={sede} /> : <TabFinales sede={sede} />}
         </div>
       </div>
     </div>

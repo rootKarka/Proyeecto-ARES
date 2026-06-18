@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Bot, Cpu, Activity, CheckCircle, XCircle,
   Loader2, AlertTriangle, Database, Users,
   MapPin, Bell, RefreshCw, Flag
 } from "lucide-react";
-import { API } from "../config/api";
+import { API, withSede } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 // ── Configuración de estados del robot (igual que RobotTable) ──
 const ESTADO_CONFIG = {
@@ -36,21 +37,24 @@ const formatTime = (iso) => {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
 
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
     try {
       setError(false);
       const [resR, resS, resL, resM, resU, resA] = await Promise.all([
-        fetch(API.robots),
-        fetch(API.sensores),
-        fetch(API.lecturas),
-        fetch(API.misiones),
-        fetch(API.usuarios),
-        fetch(API.alertas),
+        fetch(withSede(API.robots, sede)),
+        fetch(withSede(API.sensores, sede)),
+        fetch(withSede(API.lecturas, sede)),
+        fetch(withSede(API.misiones, sede)),
+        fetch(withSede(API.usuarios, sede)),
+        fetch(withSede(API.alertas, sede)),
       ]);
       const [robots, sensores, lecturas, misiones, usuarios, alertas] = await Promise.all([
         resR.json(), resS.json(), resL.json(),
@@ -63,9 +67,9 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sede]);
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64 gap-3">

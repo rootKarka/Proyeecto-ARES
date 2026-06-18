@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { buildErrors, isRequired, sanitizeText } from "../../utils/validators";
+import { useAuth } from "../../context/AuthContext";
 
 const ESTADO_CHOICES = ["PENDIENTE", "EN_CURSO", "PAUSADA", "COMPLETADA", "ABORTADA"];
 const TIPO_CHOICES   = [
@@ -17,13 +18,18 @@ export default function MisionForm({
   operadoresDisponibles = [],   // lista de usuarios con rol OPERADOR
   adminId = null,               // id del admin logueado (creado_por)
 }) {
+  const { user } = useAuth();
+
   const [form, setForm] = useState(
-    initial || {
-      nombre: "", estado: "PENDIENTE", tipo: "OTRO",
-      zona_nombre: "", lat_zona: "", lng_zona: "",
-      robot: "", operador: "", descripcion: "",
-      observaciones_admin: "",
-    }
+    initial
+      ? { ...initial, sede: initial.sede || user?.sede || "" }
+      : {
+          nombre: "", estado: "PENDIENTE", tipo: "OTRO",
+          zona_nombre: "", lat_zona: "", lng_zona: "",
+          robot: "", operador: "", descripcion: "",
+          observaciones_admin: "",
+          sede: user?.sede || "",   // ← hereda la sede del admin logueado
+        }
   );
   const [errors, setErrors] = useState({});
 
@@ -44,6 +50,7 @@ export default function MisionForm({
       nombre:               sanitizeText(form.nombre),
       estado:               form.estado,
       tipo:                 form.tipo,
+      sede:                 form.sede,
       zona_nombre:          sanitizeText(form.zona_nombre),
       lat_zona:             form.lat_zona  ? Number(form.lat_zona)  : null,
       lng_zona:             form.lng_zona  ? Number(form.lng_zona)  : null,
@@ -62,6 +69,14 @@ export default function MisionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
+      {/* Sede (solo lectura, viene del admin logueado) */}
+      {user?.sede && (
+        <div className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border
+                        border-gray-200 dark:border-gray-700/60 text-sm text-gray-500 dark:text-gray-400">
+          Sede: <span className="font-medium text-gray-700 dark:text-gray-300">{user.sede}</span>
+        </div>
+      )}
 
       {/* Nombre + Tipo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

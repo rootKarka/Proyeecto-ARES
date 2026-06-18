@@ -1,13 +1,26 @@
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { buildErrors, isRequired, isValidEmail, minLength, sanitizeText } from "../../utils/validators";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
+  const { user } = useAuth();
+
   const [form, setForm] = useState(
     initial
-      ? { nombre: initial.nombre, email: initial.email, rol: initial.rol,
-          telefono: initial.telefono || "", activo: initial.activo, password_hash: "" }
-      : { nombre: "", email: "", password_hash: "", rol: "OPERADOR", telefono: "", activo: true }
+      ? {
+          nombre: initial.nombre,
+          email: initial.email,
+          telefono: initial.telefono || "",
+          activo: initial.activo,
+          password_hash: "",
+          sede: initial.sede || user?.sede || "",
+        }
+      : {
+          nombre: "", email: "", password_hash: "",
+          telefono: "", activo: true,
+          sede: user?.sede || "",  // ← hereda la sede del admin logueado
+        }
   );
   const [errors, setErrors] = useState({});
 
@@ -20,18 +33,17 @@ export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
     e.preventDefault();
     const errs = buildErrors({
       nombre: [
-        { check: isRequired(form.nombre),       message: "El nombre es requerido." },
-        { check: minLength(form.nombre, 3),      message: "Mínimo 3 caracteres." },
+        { check: isRequired(form.nombre),  message: "El nombre es requerido." },
+        { check: minLength(form.nombre, 3), message: "Mínimo 3 caracteres."   },
       ],
       email: [
-        { check: isRequired(form.email),         message: "El email es requerido." },
-        { check: isValidEmail(form.email),        message: "Email no válido." },
+        { check: isRequired(form.email),   message: "El email es requerido." },
+        { check: isValidEmail(form.email), message: "Email no válido."        },
       ],
-      // La contraseña solo es obligatoria al crear
       ...(!initial && {
         password_hash: [
-          { check: isRequired(form.password_hash),     message: "La contraseña es requerida." },
-          { check: minLength(form.password_hash, 6),   message: "Mínimo 6 caracteres." },
+          { check: isRequired(form.password_hash),   message: "La contraseña es requerida." },
+          { check: minLength(form.password_hash, 6), message: "Mínimo 6 caracteres."        },
         ],
       }),
     });
@@ -40,11 +52,11 @@ export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
     const payload = {
       nombre:   sanitizeText(form.nombre),
       email:    form.email.trim().toLowerCase(),
-      rol:      form.rol,
+      rol:      "OPERADOR",           // siempre OPERADOR desde React
+      sede:     form.sede,            // sede del admin logueado
       telefono: sanitizeText(form.telefono),
       activo:   form.activo,
     };
-    // Solo incluimos password si se escribió algo
     if (form.password_hash) payload.password_hash = form.password_hash;
 
     onSubmit(payload);
@@ -52,21 +64,35 @@ export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
 
   const inputClass = (key) =>
     `w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-gray-700/50
-     text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors
+     text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2
+     focus:ring-blue-500 transition-colors
      ${errors[key] ? "border-red-400" : "border-gray-200 dark:border-gray-700/60"}`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
+      {/* Sede (solo lectura, viene del admin logueado) */}
+      {user?.sede && (
+        <div className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border
+                        border-gray-200 dark:border-gray-700/60 text-sm text-gray-500 dark:text-gray-400">
+          Sede: <span className="font-medium text-gray-700 dark:text-gray-300">{user.sede}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre completo</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nombre completo
+          </label>
           <input type="text" value={form.nombre}
             onChange={e => handleChange("nombre", e.target.value)}
             className={inputClass("nombre")} />
           {errors.nombre && <p className="mt-1 text-xs text-red-500">{errors.nombre}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Email
+          </label>
           <input type="email" value={form.email}
             onChange={e => handleChange("email", e.target.value)}
             className={inputClass("email")} />
@@ -77,37 +103,47 @@ export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Contraseña {initial && <span className="text-gray-400 font-normal">(dejar vacío para no cambiar)</span>}
+            Contraseña{" "}
+            {initial && (
+              <span className="text-gray-400 font-normal">(vacío = no cambiar)</span>
+            )}
           </label>
           <input type="password" value={form.password_hash}
             onChange={e => handleChange("password_hash", e.target.value)}
             placeholder={initial ? "••••••" : ""}
             className={inputClass("password_hash")} />
-          {errors.password_hash && <p className="mt-1 text-xs text-red-500">{errors.password_hash}</p>}
+          {errors.password_hash && (
+            <p className="mt-1 text-xs text-red-500">{errors.password_hash}</p>
+          )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Teléfono
+          </label>
           <input type="text" value={form.telefono}
             onChange={e => handleChange("telefono", e.target.value)}
             className={inputClass("telefono")} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rol</label>
-          <select value={form.rol} onChange={e => handleChange("rol", e.target.value)}
-            className={inputClass("rol")}>
-            <option value="OPERADOR">Operador</option>
-            <option value="ADMIN">Administrador</option>
-          </select>
+      {/* Rol fijo — solo info visual, no editable */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          Rol asignado:
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium
+                           bg-blue-500/10 text-blue-700 dark:text-blue-400">
+            OPERADOR
+          </span>
         </div>
-        <div className="flex items-center gap-3 mt-5">
+
+        {/* Toggle activo */}
+        <div className="flex items-center gap-3">
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={form.activo}
-              onChange={e => handleChange("activo", e.target.checked)} className="sr-only peer" />
-            <div className="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full peer
-                            peer-checked:bg-blue-500 transition-colors" />
+              onChange={e => handleChange("activo", e.target.checked)}
+              className="sr-only peer" />
+            <div className="w-10 h-6 bg-gray-300 dark:bg-gray-600 rounded-full
+                            peer peer-checked:bg-blue-500 transition-colors" />
             <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow
                             peer-checked:translate-x-4 transition-transform" />
           </label>
@@ -120,14 +156,16 @@ export default function UsuarioForm({ initial, onSubmit, onCancel, loading }) {
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel}
           className="px-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700/60
-                     text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                     text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50
+                     transition-colors">
           Cancelar
         </button>
         <button type="submit" disabled={loading}
           className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg
-                     bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors disabled:opacity-60">
+                     bg-blue-600 hover:bg-blue-700 text-white font-medium
+                     transition-colors disabled:opacity-60">
           {loading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-          {initial ? "Guardar cambios" : "Crear usuario"}
+          {initial ? "Guardar cambios" : "Crear operador"}
         </button>
       </div>
     </form>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Loader2, AlertTriangle } from "lucide-react";
 
 import { getSensores, getRobots, createSensor, updateSensor, deleteSensor } from "../features/sensors/sensorsApi";
+import { useAuth } from "../context/AuthContext";
 import SensorTable from "../features/sensors/SensorTable";
 import SensorForm from "../features/sensors/SensorForm";
 import Modal from "../components/Modal";
@@ -9,6 +10,9 @@ import ConfirmDelete from "../components/ConfirmDelete";
 import Toast from "../components/Toast";
 
 export default function Sensors() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [sensores, setSensores]       = useState([]);
   const [robots, setRobots]           = useState([]);
   const [robotsDict, setRobotsDict]   = useState({});
@@ -26,7 +30,7 @@ export default function Sensors() {
     try {
       setFetchError(false);
       setLoading(true);
-      const [sensoresData, robotsData] = await Promise.all([getSensores(), getRobots()]);
+      const [sensoresData, robotsData] = await Promise.all([getSensores(sede), getRobots(sede)]);
       setSensores(sensoresData);
       setRobots(robotsData);
       // Diccionario id -> nombre para mostrar en la tabla
@@ -38,7 +42,7 @@ export default function Sensors() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

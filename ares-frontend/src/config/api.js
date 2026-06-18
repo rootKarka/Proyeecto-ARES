@@ -12,3 +12,9 @@ export const API = {
   reportesFinal: `${BASE_URL}/reportes/final/`,
   mensajes:      `${BASE_URL}/mensajes/`,
 };
+
+// Helper: agrega ?sede= a cualquier URL si existe la sede
+export function withSede(url, sede) {
+  if (!sede) return url;
+  return `${url}?sede=${encodeURIComponent(sede)}`;
+}

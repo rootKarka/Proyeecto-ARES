@@ -1,8 +1,8 @@
-import { API } from "../../config/api";
+import { API, withSede } from "../../config/api";
 const API_URL = API.robots;
 
-export const getRobots = async () => {
-  const res = await fetch(API_URL);
+export const getRobots = async (sede = null) => {
+  const res = await fetch(withSede(API_URL, sede));
   if (!res.ok) throw new Error("Error al obtener robots");
   return res.json();
 };

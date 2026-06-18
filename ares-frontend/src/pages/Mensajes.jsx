@@ -3,6 +3,7 @@ import { Send, Loader2, AlertTriangle, RefreshCw, MessageSquare, CheckCheck, Clo
 import { getMensajes, createMensaje } from "../features/mensajes/mensajesApi";
 import { getUsuarios } from "../features/usuarios/usuariosApi";
 import { getMisiones } from "../features/misiones/misionesApi";
+import { useAuth } from "../context/AuthContext";
 import { buildErrors, isRequired, sanitizeText } from "../utils/validators";
 
 const TIPO_CHOICES     = ["INSTRUCCION", "EVACUACION", "INFORMATIVO", "CRITICO_AUTO"];
@@ -18,6 +19,9 @@ const formatDate = (iso) => {
 };
 
 export default function Mensajes() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [mensajes, setMensajes]   = useState([]);
   const [usuarios, setUsuarios]   = useState([]);
   const [misiones, setMisiones]   = useState([]);
@@ -35,9 +39,9 @@ export default function Mensajes() {
       setFetchError(false);
       setLoading(true);
       const [msgs, users, misions] = await Promise.all([
-        getMensajes(),
-        getUsuarios(),
-        getMisiones(),
+        getMensajes(sede),
+        getUsuarios(sede),
+        getMisiones(sede),
       ]);
       setMensajes(msgs);
       // Solo operadores como posibles destinatarios
@@ -48,7 +52,7 @@ export default function Mensajes() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
