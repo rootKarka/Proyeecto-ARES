@@ -1,3 +1,4 @@
+# views.py
 import threading
 import requests
 from rest_framework import viewsets
@@ -21,8 +22,16 @@ class LecturaViewSet(viewsets.ModelViewSet):
         return LecturaSerializer
 
     def perform_create(self, serializer):
+        # Robot se asigna en el serializer automáticamente desde sensor
         lectura = serializer.save()
 
+        # Actualizar ultima_lectura en el sensor
+        sensor = lectura.sensor
+        sensor.ultima_lectura_valor = lectura.valor
+        sensor.ultima_lectura_fecha = lectura.fecha
+        sensor.save(update_fields=['ultima_lectura_valor', 'ultima_lectura_fecha'])
+
+        # Análisis asíncrono con Spring (sin bloquear el 201 al ESP32)
         def tarea_analisis_asincrona(obj_lectura):
             url_spring = "http://localhost:8080/api/analizar"
             data = {
@@ -35,18 +44,18 @@ class LecturaViewSet(viewsets.ModelViewSet):
                     result = response.json()
                     if result.get("nivel") != "NORMAL":
                         Alerta.objects.create(
-                            nivel=result.get("nivel", "INFO"),
-                            tipo=result.get("tipo", "GAS_TOXICO"),
-                            mensaje=result.get("mensaje", "Sin mensaje"),
-                            lectura=obj_lectura,
-                            robot=obj_lectura.robot,
-                            mision=obj_lectura.mision,
-                            valor_detectado=obj_lectura.valor,
-                            latitud=obj_lectura.latitud,
-                            longitud=obj_lectura.longitud
+                            nivel           = result.get("nivel", "INFO"),
+                            tipo            = result.get("tipo", "GAS_TOXICO"),
+                            mensaje         = result.get("mensaje", "Sin mensaje"),
+                            lectura         = obj_lectura,
+                            robot           = obj_lectura.robot,
+                            mision          = obj_lectura.mision,
+                            valor_detectado = obj_lectura.valor,
+                            latitud         = obj_lectura.latitud,
+                            longitud        = obj_lectura.longitud
                         )
             except Exception as e:
-                print(f"Error en comunicación con Spring: {e}")
+                print(f"[Spring] Error: {e}")
 
         hilo = threading.Thread(target=tarea_analisis_asincrona, args=(lectura,))
         hilo.start()
