@@ -4,6 +4,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from .models import LecturaSensor
 from .serializers import LecturaSerializer, LecturaListSerializer
 from alertas.models import Alerta
@@ -17,30 +20,41 @@ class LecturaViewSet(viewsets.ModelViewSet):
         return LecturaSerializer
 
     def perform_create(self, serializer):
-        # 1. GUARDADO INMEDIATO:
-        # Django guarda y genera el ID de la lectura.
+        # 1. Guardar lectura
         lectura = serializer.save()
 
-        # 2. FUNCIÓN DE ANÁLISIS (Tarea en segundo plano):
-        # Esta función contiene la lógica que tarda (comunicación con Spring).
+        # 2. Emitir por WebSocket a Kotlin/Web
+        channel_layer = get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+            "sensores",
+            {
+                "type": "sensor_update",
+                "data": {
+                    "id": lectura.id,
+                    "sensor": lectura.sensor.id,
+                    "tipo": lectura.sensor.tipo,
+                    "valor": lectura.valor,
+                    "robot": lectura.robot.id
+                }
+            }
+        )
+
+        # 3. Función asíncrona para Spring Boot
         def tarea_analisis_asincrona(obj_lectura):
             url_spring = "http://localhost:8080/api/analizar"
-            
-            # Usamos el tipo real del sensor ("gas", "temperatura", etc.) 
-            # que vimos en las capturas de tu base de datos.
+
             data = {
                 "tipo": obj_lectura.sensor.tipo,
                 "valor": obj_lectura.valor
             }
 
             try:
-                # Enviamos a Spring Boot con un tiempo de espera máximo de 2 segundos
                 response = requests.post(url_spring, json=data, timeout=2)
 
                 if response.status_code == 200:
                     result = response.json()
-                    
-                    # Si Spring detecta algo que NO sea nivel "NORMAL", creamos la alerta
+
                     if result.get("nivel") != "NORMAL":
                         Alerta.objects.create(
                             nivel=result.get("nivel", "INFO"),
@@ -53,15 +67,15 @@ class LecturaViewSet(viewsets.ModelViewSet):
                             latitud=obj_lectura.latitud,
                             longitud=obj_lectura.longitud
                         )
+
             except Exception as e:
-                # Si Spring está apagado o hay error, lo imprime en la consola de Django
-                # pero NO detiene al robot.
                 print(f"Error en comunicación con Spring: {e}")
 
-        # 3. LANZAMIENTO DEL HILO (Threading):
-        # Aquí es donde ocurre la magia. Se dispara la función de arriba 
-        # y Django sigue adelante inmediatamente sin esperar respuesta.
-        hilo = threading.Thread(target=tarea_analisis_asincrona, args=(lectura,))
+        # 4. Lanzar análisis sin bloquear
+        hilo = threading.Thread(
+            target=tarea_analisis_asincrona,
+            args=(lectura,)
+        )
         hilo.start()
 
         # Al terminar esta función, Django le envía el "201 Created" al ESP32.
