@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "http://10.162.160.51:8000/api";
 
 export const API = {
   robots:        `${BASE_URL}/robots/`,
@@ -13,7 +13,6 @@ export const API = {
   mensajes:      `${BASE_URL}/mensajes/`,
 };
 
-// Helper: agrega ?sede= a cualquier URL si existe la sede
 export function withSede(url, sede) {
   if (!sede) return url;
   return `${url}?sede=${encodeURIComponent(sede)}`;

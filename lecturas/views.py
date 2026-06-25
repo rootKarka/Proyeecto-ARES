@@ -2,6 +2,12 @@
 import threading
 import requests
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from .models import LecturaSensor
 from .serializers import LecturaSerializer, LecturaListSerializer
 from alertas.models import Alerta
@@ -22,18 +28,30 @@ class LecturaViewSet(viewsets.ModelViewSet):
         return LecturaSerializer
 
     def perform_create(self, serializer):
-        # Robot se asigna en el serializer automáticamente desde sensor
+        # 1. Guardar lectura
         lectura = serializer.save()
 
-        # Actualizar ultima_lectura en el sensor
-        sensor = lectura.sensor
-        sensor.ultima_lectura_valor = lectura.valor
-        sensor.ultima_lectura_fecha = lectura.fecha
-        sensor.save(update_fields=['ultima_lectura_valor', 'ultima_lectura_fecha'])
+        # 2. Emitir por WebSocket a Kotlin/Web
+        channel_layer = get_channel_layer()
 
-        # Análisis asíncrono con Spring (sin bloquear el 201 al ESP32)
+        async_to_sync(channel_layer.group_send)(
+            "sensores",
+            {
+                "type": "sensor_update",
+                "data": {
+                    "id": lectura.id,
+                    "sensor": lectura.sensor.id,
+                    "tipo": lectura.sensor.tipo,
+                    "valor": lectura.valor,
+                    "robot": lectura.robot.id
+                }
+            }
+        )
+
+        # 3. Función asíncrona para Spring Boot
         def tarea_analisis_asincrona(obj_lectura):
             url_spring = "http://localhost:8080/api/analizar"
+
             data = {
                 "tipo":  obj_lectura.sensor.tipo,
                 "valor": obj_lectura.valor
@@ -54,8 +72,36 @@ class LecturaViewSet(viewsets.ModelViewSet):
                             latitud         = obj_lectura.latitud,
                             longitud        = obj_lectura.longitud
                         )
-            except Exception as e:
-                print(f"[Spring] Error: {e}")
 
-        hilo = threading.Thread(target=tarea_analisis_asincrona, args=(lectura,))
+            except Exception as e:
+                print(f"Error en comunicación con Spring: {e}")
+
+        # 4. Lanzar análisis sin bloquear
+        hilo = threading.Thread(
+            target=tarea_analisis_asincrona,
+            args=(lectura,)
+        )
         hilo.start()
+
+        # Al terminar esta función, Django le envía el "201 Created" al ESP32.
+        # El robot recibe el OK mientras el hilo apenas está hablando con Spring.
+
+
+# 🔹 VISTA DE PRUEBA (MANTENIDA PARA TESTEAR SPRING)
+"""
+@api_view(['GET'])
+def analizar_sensor(request):
+    url = "http://localhost:8080/api/analizar"
+    data = {
+        "tipo": "gas",
+        "valor": 100
+    }
+    try:
+        response = requests.post(url, json=data, timeout=2)
+        return JsonResponse(response.json())
+    except:
+        return JsonResponse({
+            "nivel": "NORMAL",
+            "mensaje": "Error conectando con Spring"
+        })
+"""

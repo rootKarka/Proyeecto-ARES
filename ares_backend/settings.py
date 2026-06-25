@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'bitacora',
     'reportes',
     'mensajes',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -139,4 +140,14 @@ STATIC_URL = 'static/'
 #Le decimos a django que confie en el puerto de React
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://10.162.160.51:5173"
 ]
+
+ASGI_APPLICATION = "ares_backend.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}

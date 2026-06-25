@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
+import { API } from "../config/api";
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -18,7 +20,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const res = await fetch("http://localhost:8000/api/usuarios/");
+    const res = await fetch(API.usuarios);
     if (!res.ok) throw new Error("No se pudo conectar al servidor.");
     const usuarios = await res.json();
 
