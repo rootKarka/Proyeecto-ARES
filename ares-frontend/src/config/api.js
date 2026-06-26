@@ -1,4 +1,4 @@
-const BASE_URL = "http:/192.168.1.34/:8000/api";
+const BASE_URL = "http://localhost:8000/api";
 
 export const API = {
   robots:        `${BASE_URL}/robots/`,
