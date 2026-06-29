@@ -1,0 +1,33 @@
+import { API, withSede } from "../../config/api";
+const API_URL = API.robots;
+
+export const getRobots = async (sede = null) => {
+  const res = await fetch(withSede(API_URL, sede));
+  if (!res.ok) throw new Error("Error al obtener robots");
+  return res.json();
+};
+
+export const createRobot = async (data) => {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear robot");
+  return res.json();
+};
+
+export const updateRobot = async (id, data) => {
+  const res = await fetch(`${API_URL}${id}/`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar robot");
+  return res.json();
+};
+
+export const deleteRobot = async (id) => {
+  const res = await fetch(`${API_URL}${id}/`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar robot");
+};
