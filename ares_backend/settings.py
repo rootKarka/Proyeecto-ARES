@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'bitacora',
     'reportes',
     'mensajes',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,11 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
+
+ASGI_APPLICATION = "ares_backend.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}

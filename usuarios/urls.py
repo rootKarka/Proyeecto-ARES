@@ -3,8 +3,12 @@ from rest_framework.routers import DefaultRouter
 from .views import UsuarioViewSet
 
 router = DefaultRouter()
-router.register(r'usuarios', UsuarioViewSet)
+# El primer parámetro 'usuarios' será el prefijo de la URL.
+router.register(r'usuarios', UsuarioViewSet, basename='usuario')
 
 urlpatterns = [
     path('', include(router.urls)),
+
+    # Al meter 'api/' e incluir router.urls, todas tus rutas empezarán con /api/
+    path('api/', include(router.urls)),
 ]
