@@ -13,7 +13,7 @@ export const API = {
   mensajes:      `${BASE_URL}/mensajes/`,
 };
 
-// Esta función es la que falta — agrégala si no está
+// Helper: agrega ?sede= a cualquier URL si existe la sede
 export function withSede(url, sede) {
   if (!sede) return url;
   return `${url}?sede=${encodeURIComponent(sede)}`;

@@ -1,8 +1,8 @@
-import { API } from "../../config/api";
+import { API, withSede } from "../../config/api";
 const API_URL = API.misiones;
 
-export const getMisiones = async () => {
-  const res = await fetch(API_URL);
+export const getMisiones = async (sede = null) => {
+  const res = await fetch(withSede(API_URL, sede));
   if (!res.ok) throw new Error("Error al obtener misiones");
   return res.json();
 };

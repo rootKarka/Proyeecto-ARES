@@ -1,16 +1,14 @@
 from django.db import models
 from robots.models import Robot
 
-
 class Mision(models.Model):
     ESTADO_CHOICES = [
-        ('PENDIENTE',   'Pendiente'),
-        ('EN_CURSO',    'En curso'),
-        ('PAUSADA',     'Pausada'),
-        ('COMPLETADA',  'Completada'),
-        ('ABORTADA',    'Abortada'),
+        ('PENDIENTE',  'Pendiente'),
+        ('EN_CURSO',   'En curso'),
+        ('PAUSADA',    'Pausada'),
+        ('COMPLETADA', 'Completada'),
+        ('ABORTADA',   'Abortada'),
     ]
-
     TIPO_CHOICES = [
         ('DERRUMBE',        'Derrumbe'),
         ('INCENDIO',        'Incendio'),
@@ -24,23 +22,18 @@ class Mision(models.Model):
     nombre              = models.CharField(max_length=255)
     estado              = models.CharField(max_length=30, choices=ESTADO_CHOICES, default='PENDIENTE')
     tipo                = models.CharField(max_length=50, choices=TIPO_CHOICES, default='OTRO')
+    sede                = models.CharField(max_length=100, blank=True)  # ← NUEVO
     zona_nombre         = models.CharField(max_length=150, blank=True)
     lat_zona            = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     lng_zona            = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     robot               = models.ForeignKey(Robot, on_delete=models.SET_NULL, null=True, blank=True)
-    creado_por          = models.ForeignKey(                          # ← admin que crea la misión
-        'usuarios.Usuario',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='misiones_creadas'
+    creado_por          = models.ForeignKey(
+        'usuarios.Usuario', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='misiones_creadas'
     )
-    operador            = models.ForeignKey(                          # ← operador asignado
-        'usuarios.Usuario',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='misiones_operadas'
+    operador            = models.ForeignKey(
+        'usuarios.Usuario', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='misiones_operadas'
     )
     descripcion         = models.TextField(blank=True)
     observaciones_admin = models.TextField(blank=True)

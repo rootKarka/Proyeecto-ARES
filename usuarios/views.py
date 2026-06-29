@@ -13,10 +13,20 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return UsuarioCreateSerializer
         return UsuarioSerializer
 
-    # Endpoint extra: solo operadores activos (para asignar a misiones)
+    def get_queryset(self):
+        qs = Usuario.objects.all().order_by('-created_at')
+        sede = self.request.query_params.get('sede')
+        if sede:
+            qs = qs.filter(sede=sede)
+        return qs
+
+    # Solo operadores activos de una sede — para asignar a misiones
     @action(detail=False, methods=['get'])
     def operadores(self, request):
+        sede = request.query_params.get('sede')
         qs = Usuario.objects.filter(rol='OPERADOR', activo=True)
+        if sede:
+            qs = qs.filter(sede=sede)
         serializer = UsuarioSerializer(qs, many=True)
         return Response(serializer.data)
 

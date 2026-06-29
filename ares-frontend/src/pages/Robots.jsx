@@ -9,6 +9,9 @@ import Toast from "../components/Toast";
 import RobotMapModal from "../components/RobotMapModal";
 
 export default function Robots() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [robots, setRobots]           = useState([]);
   const [loading, setLoading]         = useState(true);
   const [formLoading, setFormLoading] = useState(false);
@@ -24,13 +27,13 @@ export default function Robots() {
     try {
       setFetchError(false);
       setLoading(true);
-      setRobots(await getRobots());
+      setRobots(await getRobots(sede));
     } catch {
       setFetchError(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchRobots(); }, [fetchRobots]);
 

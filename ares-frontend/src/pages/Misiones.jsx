@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, AlertCircle, Loader2 } from "lucide-react";
 import MisionTable from "../features/misiones/MisionTable";
 import MisionForm  from "../features/misiones/MisionForm";
@@ -8,8 +8,12 @@ import Toast       from "../components/Toast";
 import { getMisiones, createMision, updateMision, deleteMision } from "../features/misiones/misionesApi";
 import { getRobots }     from "../features/robots/robotsApi";
 import { getOperadores } from "../features/usuarios/usuariosApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function Misiones() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [misiones, setMisiones]                 = useState([]);
   const [robotsDisponibles, setRobotsDisponibles]   = useState([]);
   const [operadoresDisponibles, setOperadoresDisponibles] = useState([]);
@@ -23,14 +27,14 @@ export default function Misiones() {
   const showToast  = (message, type = "success") => setToast({ message, type });
   const closeModal = () => { setModal(null); setSelected(null); };
 
-  const fetchDatos = async () => {
+  const fetchDatos = useCallback(async () => {
     try {
       setFetchError(false);
       setLoading(true);
       const [dataMisiones, dataRobots, dataOperadores] = await Promise.all([
-        getMisiones(),
-        getRobots(),
-        getOperadores(),
+        getMisiones(sede),
+        getRobots(sede),
+        getOperadores(sede),
       ]);
       setMisiones(dataMisiones);
       setRobotsDisponibles(dataRobots);
@@ -40,9 +44,9 @@ export default function Misiones() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sede]);
 
-  useEffect(() => { fetchDatos(); }, []);
+  useEffect(() => { fetchDatos(); }, [fetchDatos]);
 
   const handleCreate = async (data) => {
     setFormLoading(true);

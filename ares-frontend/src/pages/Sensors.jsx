@@ -8,6 +8,9 @@ import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 
 export default function Sensors() {
+  const { user } = useAuth();
+  const sede = user?.sede;
+
   const [sensores, setSensores]       = useState([]);
   const [robots, setRobots]           = useState([]);
   const [robotsDict, setRobotsDict]   = useState({});
@@ -25,7 +28,7 @@ export default function Sensors() {
     try {
       setFetchError(false);
       setLoading(true);
-      const [sensoresData, robotsData] = await Promise.all([getSensores(), getRobots()]);
+      const [sensoresData, robotsData] = await Promise.all([getSensores(sede), getRobots(sede)]);
       setSensores(sensoresData);
       setRobots(robotsData);
       const dict = {};
@@ -36,7 +39,7 @@ export default function Sensors() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sede]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

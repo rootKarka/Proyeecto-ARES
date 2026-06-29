@@ -5,9 +5,8 @@ from .models import Usuario
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        # Excluimos password_hash y token_sesion de las respuestas por seguridad
-        fields = ['id', 'nombre', 'email', 'rol', 'telefono', 'activo',
-                  'token_push', 'created_at']
+        fields = ['id', 'nombre', 'email', 'rol', 'sede', 'telefono',
+                  'activo', 'token_push', 'created_at']
 
 # 👇 MODIFICAMOS ESTE PARA QUE ENCRIPTE EN AUTOMÁTICO 👇
 class UsuarioCreateSerializer(serializers.ModelSerializer):

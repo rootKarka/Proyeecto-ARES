@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const ESTADO_CHOICES = [
   { value: "DISPONIBLE", label: "Disponible" },
@@ -10,6 +11,8 @@ const ESTADO_CHOICES = [
 ];
 
 export default function RobotForm({ initial, onSubmit, onCancel, loading }) {
+  const { user } = useAuth();
+
   const [form, setForm] = useState(
     initial
       ? { 
@@ -17,14 +20,16 @@ export default function RobotForm({ initial, onSubmit, onCancel, loading }) {
           mac_address: initial.mac_address, 
           estado: initial.estado, 
           latitud: initial.latitud, 
-          longitud: initial.longitud 
+          longitud: initial.longitud,
+          sede: initial.sede || user?.sede || "",
         }
       : { 
           nombre: "", 
           mac_address: "", 
           estado: "DISPONIBLE", 
           latitud: "", 
-          longitud: "" 
+          longitud: "",
+          sede: user?.sede || "",   // ← hereda la sede del admin logueado
         }
   );
   const [errors, setErrors] = useState({});
@@ -59,6 +64,14 @@ export default function RobotForm({ initial, onSubmit, onCancel, loading }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
+      {/* Sede (solo lectura, viene del admin logueado) */}
+      {user?.sede && (
+        <div className="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border
+                        border-gray-200 dark:border-gray-700/60 text-sm text-gray-500 dark:text-gray-400">
+          Sede: <span className="font-medium text-gray-700 dark:text-gray-300">{user.sede}</span>
+        </div>
+      )}
 
       {/* Nombre y MAC Address */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

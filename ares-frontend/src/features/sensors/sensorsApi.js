@@ -1,15 +1,15 @@
-import { API } from "../../config/api";
+import { API, withSede } from "../../config/api";
 const API_SENSORES = API.sensores;
 const API_ROBOTS   = API.robots;
 
-export const getSensores = async () => {
-  const res = await fetch(API_SENSORES);
+export const getSensores = async (sede = null) => {
+  const res = await fetch(withSede(API_SENSORES, sede));
   if (!res.ok) throw new Error("Error al obtener sensores");
   return res.json();
 };
 
-export const getRobots = async () => {
-  const res = await fetch(API_ROBOTS);
+export const getRobots = async (sede = null) => {
+  const res = await fetch(withSede(API_ROBOTS, sede));
   if (!res.ok) throw new Error("Error al obtener robots");
   return res.json();
 };
