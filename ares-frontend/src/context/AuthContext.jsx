@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-  const res = await fetch("http://localhost:8000/api/usuarios/");
+  const res = await fetch("https://proyeecto-ares.onrender.com/api/usuarios/");
   if (!res.ok) throw new Error("No se pudo conectar al servidor.");
   const usuarios = await res.json();
 
