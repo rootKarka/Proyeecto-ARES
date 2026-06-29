@@ -153,6 +153,7 @@ STATIC_URL = '/static/'
 #Le decimos a django que confie en el puerto de React
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://proyeecto-ares.onrender.com"
 ]
 
 ASGI_APPLICATION = "ares_backend.asgi.application"
