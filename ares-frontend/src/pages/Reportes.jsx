@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { FileText, ClipboardList, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
-import { getReportesActualizacion, getReportesFinales } from "../features/reportes/reportesApi";
+import { FileText, ClipboardList, Loader2, AlertTriangle, RefreshCw, FileDown, Eye } from "lucide-react";
+import { getReportesActualizacion, getReportesFinales, urlPdfActualizacion } from "../features/reportes/reportesApi";
 import { useAuth } from "../context/AuthContext";
+import ReporteFinalDetalle from "../components/ReporteFinalDetalle";
 
 const NIVEL_CONFIG = {
   NORMAL:      { bg: "bg-gray-500/10",   text: "text-gray-700 dark:text-gray-400"     },
@@ -75,6 +76,7 @@ function TabActualizaciones({ sede }) {
             <th className="p-4 text-left font-semibold">Víctimas</th>
             <th className="p-4 text-left font-semibold">Autor</th>
             <th className="p-4 text-left font-semibold">Fecha</th>
+            <th className="p-4 text-right font-semibold">PDF</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 dark:text-gray-300">
@@ -93,15 +95,9 @@ function TabActualizaciones({ sede }) {
                 <td className="p-4 text-gray-600 dark:text-gray-400 max-w-xs truncate">{r.resumen}</td>
                 <td className="p-4">
                   <div className="flex gap-3 text-xs">
-                    <span className="text-green-600 dark:text-green-400 font-medium">
-                      ✓ {r.victimas_rescatadas}
-                    </span>
-                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">
-                      ⚠ {r.victimas_heridas}
-                    </span>
-                    <span className="text-red-600 dark:text-red-400 font-medium">
-                      ✕ {r.victimas_fallecidas}
-                    </span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">✓ {r.victimas_rescatadas}</span>
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">⚠ {r.victimas_heridas}</span>
+                    <span className="text-red-600 dark:text-red-400 font-medium">✕ {r.victimas_fallecidas}</span>
                   </div>
                 </td>
                 <td className="p-4 text-gray-500 dark:text-gray-400">
@@ -109,6 +105,12 @@ function TabActualizaciones({ sede }) {
                 </td>
                 <td className="p-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {formatDate(r.created_at)}
+                </td>
+                <td className="p-4 text-right">
+                  <a href={urlPdfActualizacion(r.id)} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                    <FileDown size={13} /> PDF
+                  </a>
                 </td>
               </tr>
             );
@@ -120,7 +122,7 @@ function TabActualizaciones({ sede }) {
 }
 
 // ── Tab: Reportes Finales ──────────────────────────────────────
-function TabFinales({ sede }) {
+function TabFinales({ sede, onVerDetalle }) {
   const [reportes, setReportes] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(false);
@@ -172,8 +174,8 @@ function TabFinales({ sede }) {
             <th className="p-4 text-left font-semibold">Duración</th>
             <th className="p-4 text-left font-semibold">Víctimas</th>
             <th className="p-4 text-left font-semibold">Alertas críticas</th>
-            <th className="p-4 text-left font-semibold">PDF</th>
             <th className="p-4 text-left font-semibold">Generado</th>
+            <th className="p-4 text-right font-semibold">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60 dark:text-gray-300">
@@ -192,36 +194,23 @@ function TabFinales({ sede }) {
                 <td className="p-4 text-gray-600 dark:text-gray-400">{r.duracion_minutos} min</td>
                 <td className="p-4">
                   <div className="flex gap-3 text-xs">
-                    <span className="text-green-600 dark:text-green-400 font-medium">
-                      ✓ {r.victimas_rescatadas}
-                    </span>
-                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">
-                      ⚠ {r.victimas_heridas}
-                    </span>
-                    <span className="text-red-600 dark:text-red-400 font-medium">
-                      ✕ {r.victimas_fallecidas}
-                    </span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">✓ {r.victimas_rescatadas}</span>
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">⚠ {r.victimas_heridas}</span>
+                    <span className="text-red-600 dark:text-red-400 font-medium">✕ {r.victimas_fallecidas}</span>
                   </div>
                 </td>
                 <td className="p-4">
                   <span className="font-bold text-red-600 dark:text-red-400">{r.alertas_criticas}</span>
-                  <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">
-                    / {r.total_alertas} total
-                  </span>
-                </td>
-                <td className="p-4">
-                  {r.url_pdf ? (
-                    <a href={`http://localhost:8000${r.url_pdf}`}
-                      target="_blank" rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                      <FileText size={13} /> Descargar
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-400">—</span>
-                  )}
+                  <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">/ {r.total_alertas} total</span>
                 </td>
                 <td className="p-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {formatDate(r.created_at)}
+                </td>
+                <td className="p-4 text-right">
+                  <button onClick={() => onVerDetalle(r)}
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                    <Eye size={13} /> Ver detalle
+                  </button>
                 </td>
               </tr>
             );
@@ -237,10 +226,18 @@ export default function Reportes() {
   const { user } = useAuth();
   const sede = user?.sede;
 
-  const [tab, setTab] = useState("actualizacion"); // "actualizacion" | "final"
+  const [tab, setTab] = useState("actualizacion");
+  const [reporteSeleccionado, setReporteSeleccionado] = useState(null);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+
+      {reporteSeleccionado && (
+        <ReporteFinalDetalle
+          reporte={reporteSeleccionado}
+          onClose={() => setReporteSeleccionado(null)}
+        />
+      )}
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Reportes</h1>
@@ -249,7 +246,6 @@ export default function Reportes() {
         </p>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
         <div className="flex border-b border-gray-100 dark:border-gray-700/60">
           <button
@@ -273,7 +269,9 @@ export default function Reportes() {
         </div>
 
         <div className="p-2">
-          {tab === "actualizacion" ? <TabActualizaciones sede={sede} /> : <TabFinales sede={sede} />}
+          {tab === "actualizacion"
+            ? <TabActualizaciones sede={sede} />
+            : <TabFinales sede={sede} onVerDetalle={setReporteSeleccionado} />}
         </div>
       </div>
     </div>

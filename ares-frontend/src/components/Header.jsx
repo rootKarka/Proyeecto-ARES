@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import SearchModal from '../components/ModalSearch';
+import React from 'react';
 import Notifications from '../components/DropdownNotifications';
-import Help from '../components/DropdownHelp';
 import UserMenu from '../components/DropdownProfile';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +7,6 @@ import { ShieldCheck, User } from 'lucide-react';
 
 function Header({ sidebarOpen, setSidebarOpen }) {
   const { user } = useAuth();
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   return (
     <header className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200
@@ -17,10 +14,9 @@ function Header({ sidebarOpen, setSidebarOpen }) {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Left side */}
+          {/* Lado Izquierdo: Menú móvil y Saludo */}
           <div className="flex items-center gap-4">
-
-            {/* Hamburger — solo mobile */}
+            {/* Hamburger — solo visible en pantallas móviles */}
             <button
               className="text-gray-500 hover:text-gray-600 dark:text-gray-400
                          dark:hover:text-gray-300 lg:hidden"
@@ -40,8 +36,8 @@ function Header({ sidebarOpen, setSidebarOpen }) {
             {user && (
               <div className="hidden sm:flex items-center gap-2">
                 {user.rol === "ADMIN"
-                  ? <ShieldCheck size={15} className="text-purple-500" />
-                  : <User size={15} className="text-blue-500" />}
+                  ? <ShieldCheck size={16} className="text-purple-500" />
+                  : <User size={16} className="text-blue-500" />}
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   Hola,{" "}
                   <span className="font-semibold text-gray-700 dark:text-gray-200">
@@ -52,41 +48,18 @@ function Header({ sidebarOpen, setSidebarOpen }) {
             )}
           </div>
 
-          {/* Right side */}
+          {/* Lado Derecho: Campanita, Tema y Perfil */}
           <div className="flex items-center space-x-3">
-
-            {/* Buscar */}
-            <div>
-              <button
-                className={`w-8 h-8 flex items-center justify-center rounded-full ml-3
-                            hover:bg-gray-100 lg:hover:bg-gray-200
-                            dark:hover:bg-gray-800 dark:lg:hover:bg-gray-700
-                            ${searchModalOpen ? "bg-gray-200 dark:bg-gray-800" : ""}`}
-                onClick={(e) => { e.stopPropagation(); setSearchModalOpen(true); }}
-                aria-controls="search-modal"
-              >
-                <span className="sr-only">Buscar</span>
-                <svg className="fill-current text-gray-500 dark:text-gray-400"
-                  width={16} height={16} viewBox="0 0 16 16">
-                  <path d="M7 14c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7ZM7 2C4.243 2 2 4.243 2 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5Z" />
-                  <path d="m13.314 11.9 2.393 2.393a.999.999 0 1 1-1.414 1.414L11.9 13.314a8.019 8.019 0 0 0 1.414-1.414Z" />
-                </svg>
-              </button>
-              <SearchModal
-                id="search-modal"
-                searchId="search"
-                modalOpen={searchModalOpen}
-                setModalOpen={setSearchModalOpen}
-              />
-            </div>
-
+            {/* Campanita de Notificaciones ARES */}
             <Notifications align="right" />
-            <Help align="right" />
+
+            {/* Cambiador de Modo Claro / Oscuro */}
             <ThemeToggle />
 
-            {/* Divider */}
+            {/* Línea divisoria */}
             <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700 border-none" />
 
+            {/* Menú desplegable del Perfil */}
             <UserMenu align="right" />
           </div>
 

@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Bot, Cpu, Activity, CheckCircle, XCircle,
-  Loader2, AlertTriangle, Database, Users,
-  MapPin, Bell, RefreshCw, Flag
+  Bot, Cpu, Activity, Loader2, AlertTriangle, Users,
+  Bell, RefreshCw, Flag, FileText, BatteryFull, BatteryLow, MapPin
 } from "lucide-react";
 import { API, withSede } from "../config/api";
 import { useAuth } from "../context/AuthContext";
 
-// ── Configuración de estados del robot (igual que RobotTable) ──
 const ESTADO_CONFIG = {
   DISPONIBLE:    { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", label: "Disponible"       },
   EN_MISION:     { dot: "bg-blue-500",    text: "text-blue-600 dark:text-blue-400",       bg: "bg-blue-500/10",   label: "En Misión"         },
@@ -24,11 +22,11 @@ const MISION_ESTADO_CONFIG = {
   ABORTADA:   { bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400",       dot: "bg-red-500"    },
 };
 
-const NIVEL_CONFIG = {
-  INFO:        { bg: "bg-blue-500/10",   text: "text-blue-600 dark:text-blue-400"     },
-  ADVERTENCIA: { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400" },
-  CRITICO:     { bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400"       },
-  EMERGENCIA:  { bg: "bg-red-600/15",    text: "text-red-700 dark:text-red-300 font-bold" },
+const RIESGO_CONFIG = {
+  NORMAL:      { bg: "bg-gray-500/10",   text: "text-gray-600 dark:text-gray-400",     dot: "bg-gray-400"   },
+  PRECAUCION:  { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500" },
+  ALTO_RIESGO: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500" },
+  CRITICO:     { bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400",       dot: "bg-red-500"    },
 };
 
 const formatTime = (iso) => {
@@ -48,19 +46,20 @@ export default function Dashboard() {
   const fetchAll = useCallback(async () => {
     try {
       setError(false);
-      const [resR, resS, resL, resM, resU, resA] = await Promise.all([
+      // Nota: ya NO se fetchea /lecturas/ aquí — esa tabla es de alto volumen
+      // y el dashboard general usa los campos cacheados de robot/sensor.
+      const [resR, resS, resM, resU, resA, resRep] = await Promise.all([
         fetch(withSede(API.robots, sede)),
         fetch(withSede(API.sensores, sede)),
-        fetch(withSede(API.lecturas, sede)),
         fetch(withSede(API.misiones, sede)),
         fetch(withSede(API.usuarios, sede)),
         fetch(withSede(API.alertas, sede)),
+        fetch(withSede(API.reportesAct, sede)),
       ]);
-      const [robots, sensores, lecturas, misiones, usuarios, alertas] = await Promise.all([
-        resR.json(), resS.json(), resL.json(),
-        resM.json(), resU.json(), resA.json(),
+      const [robots, sensores, misiones, usuarios, alertas, reportesAct] = await Promise.all([
+        resR.json(), resS.json(), resM.json(), resU.json(), resA.json(), resRep.json(),
       ]);
-      setData({ robots, sensores, lecturas, misiones, usuarios, alertas });
+      setData({ robots, sensores, misiones, usuarios, alertas, reportesAct });
       setLastUpdate(new Date());
     } catch {
       setError(true);
@@ -93,7 +92,7 @@ export default function Dashboard() {
     </div>
   );
 
-  const { robots, sensores, lecturas, misiones, usuarios, alertas } = data;
+  const { robots, sensores, misiones, usuarios, alertas, reportesAct } = data;
 
   // ── Cálculos ──────────────────────────────────────────────────
   const robotsDisponibles = robots.filter(r => r.estado === "DISPONIBLE").length;
@@ -107,17 +106,20 @@ export default function Dashboard() {
 
   const alertasCriticas   = alertas.filter(a => ["CRITICO", "EMERGENCIA"].includes(a.nivel)).length;
 
-  const ultimasLecturas   = [...lecturas]
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-    .slice(0, 6);
+  const reportesCriticos  = reportesAct.filter(r => r.nivel_riesgo === "CRITICO").length;
+  const reportesHoy       = reportesAct.filter(r =>
+    new Date(r.created_at).toDateString() === new Date().toDateString()
+  ).length;
 
-  const ultimasAlertas    = [...alertas]
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+  const ultimosReportes   = [...reportesAct]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 5);
 
   const misionesRecientes = [...misiones]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 4);
+
+  const robotsActivos = robots.filter(r => r.estado === "EN_MISION");
 
   // ── Stat cards ────────────────────────────────────────────────
   const statCards = [
@@ -167,12 +169,10 @@ export default function Dashboard() {
       border: "border-indigo-500/20",
     },
     {
-      label: "Lecturas hoy",
-      value: lecturas.filter(l =>
-        new Date(l.fecha).toDateString() === new Date().toDateString()
-      ).length,
-      total: `${lecturas.length} en total`,
-      icon: Activity,
+      label: "Reportes hoy",
+      value: reportesHoy,
+      total: `${reportesCriticos} crítico${reportesCriticos !== 1 ? "s" : ""} en total`,
+      icon: FileText,
       color: "text-slate-600 dark:text-slate-400",
       bg: "bg-slate-500/10",
       border: "border-slate-500/20",
@@ -351,110 +351,101 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Fila 3: Alertas recientes + Últimas lecturas ── */}
+      {/* ── Fila 3: Reportes de actualización + Robots en misión (telemetría en vivo) ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
-        {/* Alertas recientes */}
+        {/* Reportes de actualización recientes */}
         <div className="bg-white dark:bg-gray-900 shadow-xs rounded-xl border border-gray-100 dark:border-gray-800">
           <header className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bell size={16} className="text-blue-600 dark:text-blue-400" />
-              <h2 className="font-semibold text-gray-800 dark:text-gray-100">Alertas recientes</h2>
+              <FileText size={16} className="text-blue-600 dark:text-blue-400" />
+              <h2 className="font-semibold text-gray-800 dark:text-gray-100">Reportes de actualización</h2>
             </div>
-            {alertasCriticas > 0 && (
+            {reportesCriticos > 0 && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 font-medium">
-                {alertasCriticas} crítica{alertasCriticas !== 1 ? "s" : ""}
+                {reportesCriticos} crítico{reportesCriticos !== 1 ? "s" : ""}
               </span>
             )}
           </header>
           <div className="p-3">
-            {alertas.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">Sin alertas registradas.</p>
+            {ultimosReportes.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6">Sin reportes de actualización aún.</p>
             ) : (
-              <table className="table-auto w-full text-sm">
-                <thead className="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/60">
-                  <tr>
-                    <th className="p-3 text-left font-semibold">Nivel</th>
-                    <th className="p-3 text-left font-semibold">Tipo</th>
-                    <th className="p-3 text-left font-semibold">Valor</th>
-                    <th className="p-3 text-left font-semibold">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {ultimasAlertas.map(a => {
-                    const cfg = NIVEL_CONFIG[a.nivel] || NIVEL_CONFIG.INFO;
-                    return (
-                      <tr key={a.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                        <td className="p-3">
-                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
-                            {a.nivel}
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {ultimosReportes.map(r => {
+                  const cfg = RIESGO_CONFIG[r.nivel_riesgo] || RIESGO_CONFIG.NORMAL;
+                  return (
+                    <li key={r.id} className="py-3 px-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5
+                                           rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                            {r.nivel_riesgo}
                           </span>
-                        </td>
-                        <td className="p-3 text-xs text-gray-600 dark:text-gray-400">
-                          {a.tipo?.replace(/_/g, " ")}
-                        </td>
-                        <td className="p-3 font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">
-                          {a.valor_detectado}
-                        </td>
-                        <td className="p-3 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                          {formatTime(a.fecha)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 max-w-[110px] truncate">
+                            {r.mision_nombre}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                          {formatTime(r.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                        {r.resumen}
+                      </p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+                          {r.victimas_rescatadas > 0 && <span>🟢 {r.victimas_rescatadas} rescatadas</span>}
+                          {r.victimas_heridas > 0 && <span>🟠 {r.victimas_heridas} heridas</span>}
+                          {r.victimas_fallecidas > 0 && <span>🔴 {r.victimas_fallecidas} fallecidas</span>}
+                        </div>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                          {r.autor_nombre}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         </div>
 
-        {/* Últimas lecturas */}
+        {/* Robots en misión — estado en vivo (usa campos ya cacheados, sin fetch extra) */}
         <div className="bg-white dark:bg-gray-900 shadow-xs rounded-xl border border-gray-100 dark:border-gray-800">
           <header className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
             <Activity size={16} className="text-blue-600 dark:text-blue-400" />
-            <h2 className="font-semibold text-gray-800 dark:text-gray-100">Últimas lecturas</h2>
+            <h2 className="font-semibold text-gray-800 dark:text-gray-100">Robots en misión</h2>
           </header>
           <div className="p-3">
-            {ultimasLecturas.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-6">No hay lecturas registradas.</p>
+            {robotsActivos.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6">Ningún robot está en misión ahora.</p>
             ) : (
-              <table className="table-auto w-full text-sm">
-                <thead className="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/60">
-                  <tr>
-                    <th className="p-3 text-left font-semibold">Sensor</th>
-                    <th className="p-3 text-left font-semibold">Valor</th>
-                    <th className="p-3 text-left font-semibold">Nivel</th>
-                    <th className="p-3 text-left font-semibold">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {ultimasLecturas.map((l, i) => {
-                    const sensor = sensores.find(s => s.id === l.sensor);
-                    const nivelCfg = NIVEL_CONFIG[l.nivel_alerta] || NIVEL_CONFIG.INFO;
-                    return (
-                      <tr key={i}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
-                        <td className="p-3 font-medium text-gray-800 dark:text-gray-100">
-                          {sensor?.tipo || "—"}
-                        </td>
-                        <td className="p-3 font-mono font-semibold text-blue-600 dark:text-blue-400">
-                          {l.valor?.toFixed(2)}{" "}
-                          <span className="text-gray-400 font-normal text-xs">{sensor?.unidad}</span>
-                        </td>
-                        <td className="p-3">
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${nivelCfg.bg} ${nivelCfg.text}`}>
-                            {l.nivel_alerta || "NORMAL"}
-                          </span>
-                        </td>
-                        <td className="p-3 text-xs text-gray-400 dark:text-gray-500 font-mono whitespace-nowrap">
-                          {formatTime(l.fecha)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {robotsActivos.map(robot => {
+                  const bateria = robot.bateria_nivel ?? 0;
+                  const bateriaBaja = bateria < 20;
+                  return (
+                    <li key={robot.id} className="py-3 px-2 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{robot.nombre}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
+                          <MapPin size={11} />
+                          {robot.latitud && robot.longitud
+                            ? `${parseFloat(robot.latitud).toFixed(3)}, ${parseFloat(robot.longitud).toFixed(3)}`
+                            : "Sin ubicación"}
+                        </p>
+                      </div>
+                      <div className={`flex items-center gap-1.5 text-sm font-semibold
+                                       ${bateriaBaja ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                        {bateriaBaja ? <BatteryLow size={16} /> : <BatteryFull size={16} />}
+                        {bateria.toFixed(0)}%
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         </div>

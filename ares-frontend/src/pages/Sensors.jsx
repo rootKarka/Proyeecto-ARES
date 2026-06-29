@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 import { getSensores, getRobots, updateSensor } from "../features/sensors/sensorsApi";
+// Agrega esta línea al inicio de Robots.jsx y Sensors.jsx
+import { useAuth } from '../context/AuthContext'; // Ajusta la ruta según tu proyecto
 import SensorTable from "../features/sensors/SensorTable";
 import SensorForm from "../features/sensors/SensorForm";
 import Modal from "../components/Modal";
