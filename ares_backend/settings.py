@@ -72,12 +72,12 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',    
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -156,7 +156,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://proyeecto-ares.onrender.com", # BackEnd
     "https://proyeecto-ares-1.onrender.com",
-    "https://proyeecto-ares.vercel.ap", #FrontEnd
+    "https://proyeecto-ares.vercel.app", #FrontEnd
 ]
 
 ASGI_APPLICATION = "ares_backend.asgi.application"
@@ -170,7 +170,7 @@ CHANNEL_LAYERS = {
 CSRF_TRUSTED_ORIGINS = [
     "https://proyeecto-ares.onrender.com",
     "https://proyeecto-ares-1.onrender.com",
-    "https://proyeecto-ares.vercel.ap",
+    "https://proyeecto-ares.vercel.app",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -179,3 +179,4 @@ STATICFILES_STORAGE = (
 )
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CORS_ALLOW_CREDENTIALS = True
