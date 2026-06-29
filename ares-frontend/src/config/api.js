@@ -12,3 +12,9 @@ export const API = {
   reportesFinal: `${BASE_URL}/reportes/final/`,
   mensajes:      `${BASE_URL}/mensajes/`,
 };
+
+// Esta función es la que falta — agrégala si no está
+export function withSede(url, sede) {
+  if (!sede) return url;
+  return `${url}?sede=${encodeURIComponent(sede)}`;
+}

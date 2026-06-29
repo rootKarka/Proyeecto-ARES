@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, MapPin } from "lucide-react";
 
 const estadoConfig = {
   DISPONIBLE:    { dot: "bg-green-500",  text: "text-green-700 dark:text-green-400",   bg: "bg-green-500/10", label: "Disponible" },
@@ -13,7 +13,7 @@ const formatDate = (iso) => {
   return new Date(iso).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" });
 };
 
-export default function RobotTable({ robots, onEdit, onDelete }) {
+export default function RobotTable({ robots, onEdit, onShowMap }) {
   return (
     <div className="bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -23,8 +23,7 @@ export default function RobotTable({ robots, onEdit, onDelete }) {
               <th className="p-4 text-left font-semibold">Nombre</th>
               <th className="p-4 text-left font-semibold">MAC Address</th>
               <th className="p-4 text-left font-semibold">Estado</th>
-              <th className="p-4 text-left font-semibold">Latitud</th>
-              <th className="p-4 text-left font-semibold">Longitud</th>
+              <th className="p-4 text-left font-semibold">Ubicación</th>
               <th className="p-4 text-left font-semibold">Registro</th>
               <th className="p-4 text-right font-semibold">Acciones</th>
             </tr>
@@ -42,25 +41,27 @@ export default function RobotTable({ robots, onEdit, onDelete }) {
                       {cfg.label}
                     </span>
                   </td>
-                  <td className="p-4 font-mono text-xs text-gray-500 dark:text-gray-400">{robot.latitud}</td>
-                  <td className="p-4 font-mono text-xs text-gray-500 dark:text-gray-400">{robot.longitud}</td>
-                  {/* Corregido: robot.created_at en lugar de robot.fecha_registro */}
+
+                  {/* Botón de mapa en vez de columnas lat/lng */}
+                  <td className="p-4">
+                    <button
+                      onClick={() => onShowMap(robot)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                                 text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                    >
+                      <MapPin size={13} /> Ver mapa
+                    </button>
+                  </td>
+
                   <td className="p-4 text-gray-500 dark:text-gray-400">{formatDate(robot.created_at)}</td>
                   <td className="p-4">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end">
                       <button
                         onClick={() => onEdit(robot)}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors"
                         title="Editar"
                       >
                         <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => onDelete(robot)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={15} />
                       </button>
                     </div>
                   </td>

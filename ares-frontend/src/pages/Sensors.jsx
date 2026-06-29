@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 
-import { getSensores, getRobots, createSensor, updateSensor, deleteSensor } from "../features/sensors/sensorsApi";
+import { getSensores, getRobots, updateSensor } from "../features/sensors/sensorsApi";
 import SensorTable from "../features/sensors/SensorTable";
 import SensorForm from "../features/sensors/SensorForm";
 import Modal from "../components/Modal";
-import ConfirmDelete from "../components/ConfirmDelete";
 import Toast from "../components/Toast";
 
 export default function Sensors() {
@@ -15,7 +14,7 @@ export default function Sensors() {
   const [loading, setLoading]         = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [fetchError, setFetchError]   = useState(false);
-  const [modal, setModal]             = useState(null); // "create" | "edit" | "delete"
+  const [modal, setModal]             = useState(null); // solo "edit" ahora
   const [selected, setSelected]       = useState(null);
   const [toast, setToast]             = useState(null);
 
@@ -29,7 +28,6 @@ export default function Sensors() {
       const [sensoresData, robotsData] = await Promise.all([getSensores(), getRobots()]);
       setSensores(sensoresData);
       setRobots(robotsData);
-      // Diccionario id -> nombre para mostrar en la tabla
       const dict = {};
       robotsData.forEach(r => { dict[r.id] = r.nombre; });
       setRobotsDict(dict);
@@ -41,20 +39,6 @@ export default function Sensors() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-
-  const handleCreate = async (data) => {
-    setFormLoading(true);
-    try {
-      await createSensor(data);
-      await fetchData();
-      closeModal();
-      showToast("Sensor creado correctamente.");
-    } catch {
-      showToast("Error al crear el sensor.", "error");
-    } finally {
-      setFormLoading(false);
-    }
-  };
 
   const handleEdit = async (data) => {
     setFormLoading(true);
@@ -70,73 +54,31 @@ export default function Sensors() {
     }
   };
 
-  const handleDelete = async () => {
-    setFormLoading(true);
-    try {
-      await deleteSensor(selected.id);
-      await fetchData();
-      closeModal();
-      showToast("Sensor eliminado correctamente.");
-    } catch {
-      showToast("Error al eliminar el sensor.", "error");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
 
-      {/* Modales */}
-      {modal === "create" && (
-        <Modal title="Nuevo sensor" onClose={closeModal}>
-          <SensorForm robots={robots} onSubmit={handleCreate} onCancel={closeModal} loading={formLoading} />
-        </Modal>
-      )}
       {modal === "edit" && selected && (
         <Modal title="Editar sensor" onClose={closeModal}>
           <SensorForm initial={selected} robots={robots} onSubmit={handleEdit} onCancel={closeModal} loading={formLoading} />
         </Modal>
       )}
-      {modal === "delete" && selected && (
-        <ConfirmDelete
-          itemName={selected.tipo}
-          onConfirm={handleDelete}
-          onCancel={closeModal}
-          loading={formLoading}
-        />
-      )}
 
-      {/* Toast */}
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
 
-      {/* Header */}
+      {/* Header — sin botón de crear */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Gestión de Sensores</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Sensores</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {sensores.length} sensor{sensores.length !== 1 ? "es" : ""} registrado{sensores.length !== 1 ? "s" : ""}
+            {sensores.length} sensor{sensores.length !== 1 ? "es" : ""} integrado{sensores.length !== 1 ? "s" : ""} en la flota
           </p>
         </div>
-        <button
-          onClick={() => setModal("create")}
-          // CORRECCIÓN: Colores azules en el botón
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors shadow-xs"
-        >
-          <Plus size={16} /> Nuevo sensor
-        </button>
       </div>
 
-      {/* Contenido */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          {/* CORRECCIÓN: Spinner azul */}
           <Loader2 className="text-blue-600 dark:text-blue-500 animate-spin" size={36} />
         </div>
       ) : fetchError ? (
@@ -146,7 +88,6 @@ export default function Sensors() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Verifica que Django esté corriendo.</p>
           <button
             onClick={fetchData}
-            // CORRECCIÓN: Botón reintentar azul
             className="mt-4 px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
           >
             Reintentar
@@ -155,14 +96,13 @@ export default function Sensors() {
       ) : sensores.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[300px] bg-white dark:bg-gray-800 shadow-xs rounded-xl p-10 text-center">
           <p className="font-semibold text-gray-800 dark:text-gray-100">No hay sensores registrados</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Crea el primero con el botón de arriba.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Los sensores vienen integrados con cada robot.</p>
         </div>
       ) : (
         <SensorTable
           sensores={sensores}
           robotsDict={robotsDict}
           onEdit={(sensor) => { setSelected(sensor); setModal("edit"); }}
-          onDelete={(sensor) => { setSelected(sensor); setModal("delete"); }}
         />
       )}
 
