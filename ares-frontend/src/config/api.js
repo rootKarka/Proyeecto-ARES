@@ -1,4 +1,4 @@
-const BASE_URL = "https://proyeecto-ares.onrender.com/api/";
+const BASE_URL = "https://proyeecto-ares.onrender.com/api";
 
 export const API = {
   robots:        `${BASE_URL}/robots/`,
