@@ -7,6 +7,7 @@
 
 import threading
 import requests
+from django.conf import settings
 from sensores.models import Sensor
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
@@ -95,10 +96,11 @@ class LecturaViewSet(viewsets.ModelViewSet):
         if guardar_en_bd or umbral_superado:
             def analisis_spring(obj_lectura, valor_raw, tipo_raw, robot_raw, mision_raw,
                                 lat, lng):
-                url_spring = "http://localhost:8080/api/analizar"
+                # Lee la URL desde settings (Railway en prod, localhost en dev)
+                url_spring = settings.SPRING_BOOT_URL
                 payload    = {"tipo": tipo_raw, "valor": valor_raw}
                 try:
-                    resp = requests.post(url_spring, json=payload, timeout=2)
+                    resp = requests.post(url_spring, json=payload, timeout=5)
                     if resp.status_code == 200:
                         result = resp.json()
                         nivel  = result.get("nivel", "NORMAL")
