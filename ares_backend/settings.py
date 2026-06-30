@@ -155,7 +155,8 @@ STATIC_URL = '/static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://proyeecto-ares.onrender.com", # BackEnd
-    "https://proyeecto-ares-1.onrender.com", #FrontEnd
+    "https://proyeecto-ares-1.onrender.com",
+    "https://proyeecto-ares.vercel.app/", #FrontEnd
 ]
 
 ASGI_APPLICATION = "ares_backend.asgi.application"
@@ -169,6 +170,7 @@ CHANNEL_LAYERS = {
 CSRF_TRUSTED_ORIGINS = [
     "https://proyeecto-ares.onrender.com",
     "https://proyeecto-ares-1.onrender.com",
+    "https://proyeecto-ares.vercel.app/",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -177,3 +179,5 @@ STATICFILES_STORAGE = (
 )
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CORS_ALLOW_CREDENTIALS = True
