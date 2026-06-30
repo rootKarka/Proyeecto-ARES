@@ -8,7 +8,7 @@ function DropdownNotifications({ align }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
   // Cambia "localhost" por "127.0.0.1"
-  const socketUrl = 'ws://127.0.0.1:8000/ws/alertas/';
+  const socketUrl = 'wss://proyeecto-ares.onrender.com/ws/alertas/';
   const { notificacionesEnVivo } = useWebSocket(socketUrl);
 
   const [notifications, setNotifications] = useState([]);
