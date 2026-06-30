@@ -7,6 +7,7 @@
 
 import threading
 import requests
+from sensores.models import Sensor
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -41,9 +42,11 @@ class LecturaViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         data      = self.request.data
         robot_id  = data.get('robot')
-        tipo      = data.get('tipo_sensor', '')   # el ESP32 puede enviar esto extra
         valor     = float(data.get('valor', 0))
         mision_id = data.get('mision')
+
+        sensor_obj = Sensor.objects.get(id=data.get("sensor"))
+        tipo = sensor_obj.tipo
 
         # ── PASO 1: WebSocket INMEDIATO (sin guardar en BD) ───────
         # Kotlin y React reciben los datos crudos en tiempo real
@@ -83,15 +86,6 @@ class LecturaViewSet(viewsets.ModelViewSet):
         # ── PASO 3: Spring Boot analiza en thread separado ────────
         # Solo llama Spring si hay una lectura guardada O si el valor
         # supera el umbral crítico del sensor (para no perder alertas)
-        sensor_obj = None
-        try:
-            from sensores.models import Sensor
-            sensor_obj = Sensor.objects.filter(
-                id=data.get('sensor')
-            ).first()
-        except Exception:
-            pass
-
         umbral_superado = (
             sensor_obj and
             sensor_obj.umbral_critico is not None and
