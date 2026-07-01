@@ -14,13 +14,16 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                // Permite solicitudes desde el servidor Django (ajusta el puerto si cambia)
+                // Permite solicitudes desde Django en local y en producción (Render)
                 .allowedOrigins(
                     "http://localhost:8000",
-                    "http://127.0.0.1:8000"
+                    "http://127.0.0.1:8000",
+                    "https://proyeecto-ares.onrender.com",    // Django en Render (producción)
+                    "https://proyeecto-ares-1.onrender.com"   // URL alternativa de Render
                 )
                 .allowedMethods("GET", "POST", "OPTIONS")
                 .allowedHeaders("*")
+                .allowCredentials(false)
                 .maxAge(3600); // Cache de la pre-flight request por 1 hora
     }
 }

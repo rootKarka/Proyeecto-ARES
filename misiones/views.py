@@ -26,9 +26,6 @@ class MisionViewSet(viewsets.ModelViewSet):
         """
         GET /api/misiones/{id}/resumen/
         Kotlin llama esto al abrir el tab Finalizar Misión.
-
-        Usa TelemetriaRobot para batería y latencia
-        (no LecturaSensor que solo tiene valor genérico)
         """
         mision = self.get_object()
         resultado = {
@@ -59,7 +56,6 @@ class MisionViewSet(viewsets.ModelViewSet):
             pass
 
         # ── Alertas: total y críticas ─────────────────────────────
-        # nivel usa: INFO, ADVERTENCIA, CRITICO, EMERGENCIA
         try:
             from alertas.models import Alerta
 
@@ -81,3 +77,30 @@ class MisionViewSet(viewsets.ModelViewSet):
             pass
 
         return Response(resultado)
+
+    @action(detail=True, methods=['post'], url_path='cerrar')
+    def cerrar(self, request, pk=None):
+        """
+        POST /api/misiones/{id}/cerrar/
+        Kotlin lo llama después de enviar el reporte final.
+        Cambia el estado de la misión a COMPLETADA y registra fecha_fin.
+        El ESP32 ya no debería enviar más datos de esta misión.
+        """
+        mision = self.get_object()
+
+        # Verificar que la misión no esté ya cerrada
+        if mision.estado in ['COMPLETADA', 'ABORTADA']:
+            return Response(
+                {"error": f"La misión ya está {mision.estado}"},
+                status=400
+            )
+
+        mision.estado    = 'COMPLETADA'
+        mision.fecha_fin = timezone.now()
+        mision.save(update_fields=['estado', 'fecha_fin'])
+
+        return Response({
+            "status":    "ok",
+            "estado":    "COMPLETADA",
+            "fecha_fin": mision.fecha_fin,
+        })

@@ -1,0 +1,16 @@
+# railway.toml — Configuración de despliegue para Railway
+# Documentación: https://docs.railway.app/reference/config-as-code
+
+[build]
+# Railway detecta el Dockerfile automáticamente
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Health check: Railway verifica que el servicio está vivo antes de enrutar tráfico
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+
+# Política de reinicio si el contenedor falla
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10

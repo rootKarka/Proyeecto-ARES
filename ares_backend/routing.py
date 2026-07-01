@@ -2,6 +2,7 @@
 from django.urls import path
 from sensores.routing import websocket_urlpatterns as sensores_ws
 from alertas.routing import websocket_urlpatterns as alertas_ws
+from mensajes.routing import websocket_urlpatterns as mensajes_ws
 # Cuando le pongas WS a lecturas, lo importas aquí también:
 # from lecturas.routing import websocket_urlpatterns as lecturas_ws
 
@@ -10,4 +11,5 @@ websocket_urlpatterns = [
     *sensores_ws,
     *alertas_ws,
     # *lecturas_ws,
+    *mensajes_ws,*mensajes_ws,
 ]

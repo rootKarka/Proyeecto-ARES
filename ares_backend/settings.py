@@ -109,10 +109,9 @@ WSGI_APPLICATION = 'ares_backend.wsgi.application'
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
+        conn_max_age=0,
     )
 }
-
 
 
 # Password validation
@@ -156,7 +155,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://proyeecto-ares.onrender.com", # BackEnd
     "https://proyeecto-ares-1.onrender.com",
-    "https://proyeecto-ares.vercel.app" #FrontEnd
+    "https://proyeecto-ares.vercel.app", #FrontEnd
 ]
 
 ASGI_APPLICATION = "ares_backend.asgi.application"
@@ -171,6 +170,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://proyeecto-ares.onrender.com",
     "https://proyeecto-ares-1.onrender.com",
     "https://proyeecto-ares.vercel.app"
+    "https://proyeecto-ares.vercel.app",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -179,4 +179,15 @@ STATICFILES_STORAGE = (
 )
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 CORS_ALLOW_CREDENTIALS = True
+
+# ─────────────────────────────────────────────────────────────────
+# Microservicio Spring Boot (análisis de sensores)
+# En producción: URL de Railway (se configura en Render → Environment)
+# En desarrollo: apunta a localhost
+# ─────────────────────────────────────────────────────────────────
+SPRING_BOOT_URL = os.getenv(
+    "SPRING_BOOT_URL",
+    "http://localhost:8080/api/analizar"
+)
