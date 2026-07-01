@@ -180,3 +180,13 @@ STATICFILES_STORAGE = (
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ALLOW_CREDENTIALS = True
+
+# ─────────────────────────────────────────────────────────────────
+# Microservicio Spring Boot (análisis de sensores)
+# En producción: URL de Railway (se configura en Render → Environment)
+# En desarrollo: apunta a localhost
+# ─────────────────────────────────────────────────────────────────
+SPRING_BOOT_URL = os.getenv(
+    "SPRING_BOOT_URL",
+    "http://localhost:8080/api/analizar"
+)
