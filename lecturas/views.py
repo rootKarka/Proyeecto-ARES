@@ -138,6 +138,15 @@ class LecturaViewSet(viewsets.ModelViewSet):
                                     }
                                 }
                             )
+
+                            # Enviar notificación FCM al operador de la misión
+                            from alertas.fcm_utils import enviar_push_alerta
+                            if alerta.mision and alerta.mision.operador:
+                                operador = alerta.mision.operador
+                                if operador.token_push:
+                                    if enviar_push_alerta(operador.token_push, alerta):
+                                        alerta.notificacion_enviada = True
+                                        alerta.save(update_fields=['notificacion_enviada'])
                 except Exception as e:
                     print(f"[Spring] Error: {e}")
 
